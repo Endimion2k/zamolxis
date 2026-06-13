@@ -76,7 +76,7 @@ function renderColective() {
       <span><b>${(DATA.grupuri || []).length}</b> valuri de procese</span>
     </div>
     ${pastileDomenii()}
-    ${filtruDomeniu(DATA.cazuri)}
+    ${filtruDomeniu(DATA.cazuri, "acțiunile colective")}
     <div id="lst"></div>`;
   pictaCazuri();
 }
@@ -111,7 +111,7 @@ function renderValuri() {
       <h2>Valuri de procese identice</h2>
       <p>Mii de oameni dau în judecată separat aceeași instituție sau firmă pentru aceeași problemă. Vezi dacă <b>ai și tu același caz</b>.</p>
     </div>
-    ${filtruDomeniu(DATA.grupuri)}
+    ${filtruDomeniu(DATA.grupuri, "valurile")}
     <div id="lst"></div>`;
   pictaGrupuri();
 }
@@ -150,13 +150,15 @@ function listaGrupuri(rows) {
   }).join("") + `</div>`;
 }
 
-function filtruDomeniu(items) {
+function filtruDomeniu(items, scop) {
   const set = [...new Set(items.map(i => i.domeniu).filter(Boolean))].sort();
   if (!set.length) return "";
-  return `<div style="margin-bottom:6px"><select onchange="setDom(this.value)" aria-label="Filtrează după domeniu">
-    <option value="">Toate domeniile</option>
-    ${set.map(d => `<option value="${d}" ${d === fdom ? "selected" : ""}>${esc(domLabel(d))}</option>`).join("")}
-  </select></div>`;
+  return `<div class="filtru-domeniu">
+    <label for="sel-dom" class="muted">Filtrează ${scop || ""} pe domeniu:</label>
+    <select id="sel-dom" onchange="setDom(this.value)">
+      <option value="">Toate domeniile (${set.length})</option>
+      ${set.map(d => `<option value="${d}" ${d === fdom ? "selected" : ""}>${esc(domLabel(d))}</option>`).join("")}
+    </select></div>`;
 }
 function setDom(v) { fdom = v; tab === "valuri" ? pictaGrupuri() : pictaCazuri(); }
 function quick(q) { const e = document.getElementById("q"); e.value = q; render(); e.focus(); }

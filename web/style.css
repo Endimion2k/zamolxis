@@ -51,6 +51,8 @@ header .wrap{max-width:1000px;margin:0 auto}
 .dompastile button:hover{border-color:var(--gold)}
 .dompastile button b{background:var(--accent);color:#fff;border-radius:14px;padding:2px 9px;font-size:13px;font-variant-numeric:tabular-nums}
 .sectiune-titlu{font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;margin:18px 4px 8px}
+.filtru-domeniu{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.filtru-domeniu label{font-size:13.5px}
 
 .lista{display:flex;flex-direction:column;gap:10px}
 button.rezultat{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);
