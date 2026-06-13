@@ -45,6 +45,11 @@ header .wrap{max-width:1000px;margin:0 auto}
 .chips button:hover{background:#e7d8bc}
 .statbar{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin:4px 0 18px;color:var(--muted);font-size:14px}
 .statbar b{font-size:20px;color:var(--accent-d);display:block}
+.dompastile{display:flex;flex-wrap:wrap;gap:8px}
+.dompastile button{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);
+  border-radius:22px;padding:6px 7px 6px 14px;font:inherit;font-size:14px;color:var(--ink);cursor:pointer;min-height:40px}
+.dompastile button:hover{border-color:var(--gold)}
+.dompastile button b{background:var(--accent);color:#fff;border-radius:14px;padding:2px 9px;font-size:13px;font-variant-numeric:tabular-nums}
 .sectiune-titlu{font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;margin:18px 4px 8px}
 
 .lista{display:flex;flex-direction:column;gap:10px}

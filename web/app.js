@@ -75,9 +75,27 @@ function renderColective() {
       <span><b>${(DATA.stats && DATA.stats.confirmate) || 0}</b> confirmate</span>
       <span><b>${(DATA.grupuri || []).length}</b> valuri de procese</span>
     </div>
+    ${pastileDomenii()}
     ${filtruDomeniu(DATA.cazuri)}
     <div id="lst"></div>`;
   pictaCazuri();
+}
+
+// pastile cu numărul de valuri per domeniu — clic = navighează direct la acel domeniu
+function pastileDomenii() {
+  const c = {};
+  (DATA.grupuri || []).forEach(g => { if (g.domeniu) c[g.domeniu] = (c[g.domeniu] || 0) + 1; });
+  const items = Object.entries(c).sort((a, b) => b[1] - a[1]);
+  if (!items.length) return "";
+  return `<div class="card">
+    <div class="sectiune-titlu" style="margin-top:0">🌊 Valuri pe domenii — navighează direct</div>
+    <div class="dompastile">${items.map(([d, n]) =>
+      `<button onclick="mergiLaDomeniu('${d}')" aria-label="${esc(domLabel(d))}, ${n} valuri">
+        <span>${esc(domLabel(d))}</span><b>${n}</b></button>`).join("")}</div></div>`;
+}
+function mergiLaDomeniu(d) {
+  document.getElementById("q").value = "";
+  tab = "valuri"; fdom = d; setTabs(); render(); window.scrollTo(0, 0);
 }
 function pictaCazuri() {
   const rows = (DATA.cazuri || []).filter(c => !fdom || c.domeniu === fdom).sort((a, b) => b.scor - a.scor);
@@ -204,4 +222,5 @@ function detaliuGrup(i) {
 }
 
 window.render = render; window.clearQ = clearQ; window.quick = quick; window.setDom = setDom;
+window.mergiLaDomeniu = mergiLaDomeniu;
 window.detaliuCaz = detaliuCaz; window.detaliuGrup = detaliuGrup; window.inchide = inchide;
