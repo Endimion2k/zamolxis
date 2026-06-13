@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}{{ caz.numar }} · Portal Acțiuni Colective{% endblock %}
+{% block content %}
+
+<p><a href="/">‹ Înapoi la listă</a></p>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <h2 style="margin:0">Dosar {{ caz.numar }}</h2>
+    <span class="badge b-{{ caz.nivel }}">{{ niveluri.get(caz.nivel, caz.nivel) }} · scor {{ caz.scor }}</span>
+  </div>
+  <p class="muted" style="margin:6px 0 0">
+    {{ caz.instanta }}{% if caz.stadiu %} · {{ caz.stadiu }}{% endif %}
+    {% if caz.domeniu %} · <span class="badge b-dom">{{ domenii.get(caz.domeniu, caz.domeniu) }}</span>{% endif %}
+  </p>
+
+  {% if caz.rezumat %}
+  <p style="font-size:17px;margin:14px 0 6px"><b>{{ caz.rezumat }}</b></p>
+  {% endif %}
+
+  <p style="margin:10px 0 4px"><span class="muted">Obiect oficial:</span><br>{{ caz.obiect or '—' }}</p>
+  {% if caz.categorie %}<p class="muted">Categorie: {{ caz.categorie }}</p>{% endif %}
+</div>
+
+{% if caz.motive %}
+<div class="card">
+  <h3 style="margin-top:0">De ce a fost marcat ca acțiune colectivă</h3>
+  <ul style="margin:0">
+    {% for m in caz.motive %}<li>{{ m }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="card">
+  <h3 style="margin-top:0">Părți ({{ caz.parti|length }})</h3>
+  {% if caz.parti %}
+  <table>
+    <thead><tr><th>Parte</th><th>Calitate</th></tr></thead>
+    <tbody>
+      {% for p in caz.parti %}
+      <tr>
+        <td>{{ p.nume | public(p.este_asociatie) }}</td>
+        <td class="muted">{{ p.calitate or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="muted" style="margin-top:8px">Persoanele fizice sunt afișate cu inițiale (protecția datelor).</p>
+  {% else %}
+  <p class="muted">Lista părților nu este disponibilă pentru acest dosar.</p>
+  {% endif %}
+</div>
+
+{% if caz.termene %}
+<div class="card">
+  <h3 style="margin-top:0">Termene / ședințe ({{ caz.termene|length }})</h3>
+  <table>
+    <thead><tr><th>Data</th><th>Ora</th><th>Soluție</th></tr></thead>
+    <tbody>
+      {% for t in caz.termene %}
+      <tr>
+        <td>{{ t.data[:10] if t.data else '—' }}</td>
+        <td class="muted">{{ t.ora or '—' }}</td>
+        <td>{{ t.solutie_sumar or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="card" style="background:#f0f5fb;border-color:#cfe0f2">
+  <p style="margin:0">
+    🔎 Verifică dosarul la sursa oficială:
+    <a href="https://portal.just.ro" target="_blank" rel="noopener">portal.just.ro</a>
+    — caută după numărul <b>{{ caz.numar }}</b>.
+  </p>
+</div>
+
+{% endblock %}

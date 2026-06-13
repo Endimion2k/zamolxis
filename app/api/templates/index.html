@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="hero">
+  <h2>Ești posibil păgubit? Verifică.</h2>
+  <p>Caută o firmă, o instituție sau problema ta (ex: <i>bancă, clauze abuzive, mediu, pensii</i>)
+    și află dacă există deja un proces colectiv la care te poți raporta.</p>
+  <form method="get" action="/">
+    <input type="text" name="cauta" value="{{ f_cauta }}" placeholder="Caută firma, instituția sau problema ta…">
+    <button type="submit">Caută</button>
+  </form>
+</div>
+
+<div class="info">
+  <div class="card">
+    <h3>⚖️ Acțiuni colective</h3>
+    <p class="muted">Procese pornite de asociații/ONG-uri în numele unui grup (consumatori,
+      clauze abuzive bancare, mediu).</p>
+  </div>
+  <div class="card">
+    <h3>🌊 Valuri de procese</h3>
+    <p class="muted">Mii de oameni dau în judecată separat aceeași instituție/firmă pentru
+      aceeași problemă. <a href="/valuri">Vezi valurile →</a></p>
+  </div>
+  <div class="card">
+    <h3>🔎 Sursă oficială</h3>
+    <p class="muted">Totul provine din datele publice ale instanțelor (portal.just.ro).
+      Fiecare caz are link spre dosarul real.</p>
+  </div>
+</div>
+
+<div class="card">
+  <span class="stat"><b>{{ stats.total }}</b><br><span class="muted">acțiuni colective</span></span>
+  <span class="stat"><b>{{ stats.pe_nivel.get('confirmat', 0) }}</b><br><span class="muted">confirmate</span></span>
+  <span class="stat"><b>{{ stats.grupuri }}</b><br><span class="muted">valuri de procese</span></span>
+  <span class="stat"><b>{{ stats.dosare_in_grupuri }}</b><br><span class="muted">dosare în valuri</span></span>
+</div>
+
+<form class="card" method="get" action="/">
+  <div class="filters">
+    <div>
+      <label>Domeniu</label>
+      <select name="domeniu">
+        <option value="">Toate</option>
+        {% for cod, eticheta in domenii.items() %}
+          <option value="{{ cod }}" {{ 'selected' if f_domeniu==cod }}>{{ eticheta }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>Stare</label>
+      <select name="nivel">
+        <option value="">Toate</option>
+        {% for cod, eticheta in niveluri.items() %}
+          <option value="{{ cod }}" {{ 'selected' if f_nivel==cod }}>{{ eticheta }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="flex:1;min-width:200px">
+      <label>Caută</label>
+      <input type="text" name="cauta" value="{{ f_cauta }}" placeholder="obiect, rezumat, număr dosar" style="width:100%">
+    </div>
+    <button type="submit">Filtrează</button>
+  </div>
+</form>
+
+{% if cazuri %}
+<div class="card" style="padding:0;overflow:hidden">
+  <table>
+    <thead>
+      <tr><th>Dosar</th><th>Domeniu</th><th>Rezumat</th><th>Stare</th></tr>
+    </thead>
+    <tbody>
+      {% for c in cazuri %}
+      <tr>
+        <td>
+          <a href="/caz/{{ c.numar }}">{{ c.numar }}</a><br>
+          <span class="num">{{ c.instanta }}</span>
+        </td>
+        <td>{% if c.domeniu %}<span class="badge b-dom">{{ domenii.get(c.domeniu, c.domeniu) }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td>{{ c.rezumat or c.obiect }}</td>
+        <td>
+          <span class="badge b-{{ c.nivel }}">{{ niveluri.get(c.nivel, c.nivel) }}</span>
+          <div class="muted">scor {{ c.scor }}</div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="pager">
+  {% if pagina > 1 %}
+    <a href="?domeniu={{ f_domeniu }}&nivel={{ f_nivel }}&cauta={{ f_cauta }}&pagina={{ pagina-1 }}">‹ Înapoi</a>
+  {% endif %}
+  <span class="muted">Pagina {{ pagina }}</span>
+  {% if mai_sunt %}
+    <a href="?domeniu={{ f_domeniu }}&nivel={{ f_nivel }}&cauta={{ f_cauta }}&pagina={{ pagina+1 }}">Înainte ›</a>
+  {% endif %}
+</div>
+{% else %}
+<div class="card"><p class="muted">Niciun rezultat pentru filtrele alese. Încearcă alt cuvânt-cheie sau vezi <a href="/valuri">valurile de procese</a>.</p></div>
+{% endif %}
+
+{% endblock %}

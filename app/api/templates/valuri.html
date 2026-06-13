@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Valuri de procese identice · Portal Acțiuni Colective{% endblock %}
+{% block content %}
+
+<div class="card">
+  <h2 style="margin:0 0 6px">Valuri de procese identice</h2>
+  <p class="muted" style="margin:0">
+    Mii de oameni dau în judecată aceeași instituție pentru aceeași problemă, fiecare
+    cu dosarul lui. Le grupăm aici, ca să vezi dacă <b>ai și tu același caz</b>.
+  </p>
+  <p style="margin:10px 0 0">
+    <span class="stat"><b>{{ stats.grupuri }}</b><br><span class="muted">valuri identificate</span></span>
+    <span class="stat"><b>{{ stats.dosare_in_grupuri }}</b><br><span class="muted">dosare acoperite</span></span>
+  </p>
+</div>
+
+<form class="card" method="get" action="/valuri">
+  <div class="filters">
+    <div>
+      <label>Domeniu</label>
+      <select name="domeniu">
+        <option value="">Toate</option>
+        {% for cod, eticheta in domenii.items() %}
+          <option value="{{ cod }}" {{ 'selected' if f_domeniu==cod }}>{{ eticheta }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="flex:1;min-width:200px">
+      <label>Caută (instituție sau tip de problemă)</label>
+      <input type="text" name="cauta" value="{{ f_cauta }}" placeholder="ex: pensii, finanțe, recalculare" style="width:100%">
+    </div>
+    <button type="submit">Caută</button>
+  </div>
+</form>
+
+{% if grupuri %}
+<div class="card" style="padding:0;overflow:hidden">
+  <table>
+    <thead><tr><th>Problema</th><th>Împotriva</th><th>Domeniu</th><th>Dosare</th></tr></thead>
+    <tbody>
+      {% for g in grupuri %}
+      <tr>
+        <td><a href="/val/{{ g.id }}">{{ g.obiect_tip }}</a></td>
+        <td>{{ g.parat }}</td>
+        <td>{% if g.domeniu %}<span class="badge b-dom">{{ domenii.get(g.domeniu, g.domeniu) }}</span>{% endif %}</td>
+        <td><b>{{ '≥' if g.aprox }}{{ g.nr_dosare }}</b></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="pager">
+  {% if pagina > 1 %}<a href="?domeniu={{ f_domeniu }}&cauta={{ f_cauta }}&pagina={{ pagina-1 }}">‹ Înapoi</a>{% endif %}
+  <span class="muted">Pagina {{ pagina }}</span>
+  {% if mai_sunt %}<a href="?domeniu={{ f_domeniu }}&cauta={{ f_cauta }}&pagina={{ pagina+1 }}">Înainte ›</a>{% endif %}
+</div>
+{% else %}
+<div class="card"><p class="muted">Niciun val pentru filtrele alese. Rulează scanner-ul de valuri (vezi README).</p></div>
+{% endif %}
+
+{% endblock %}

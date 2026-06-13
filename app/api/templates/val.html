@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ g.obiect_tip }} · Val de procese{% endblock %}
+{% block content %}
+
+<p><a href="/valuri">‹ Înapoi la valuri</a></p>
+
+<div class="card">
+  <h2 style="margin:0 0 4px">{{ g.obiect_tip }}</h2>
+  <p class="muted" style="margin:0">
+    împotriva <b>{{ g.parat }}</b>
+    {% if g.domeniu %} · <span class="badge b-dom">{{ domenii.get(g.domeniu, g.domeniu) }}</span>{% endif %}
+  </p>
+  <p style="font-size:19px;margin:14px 0 4px">
+    <b>{{ '≥ ' if g.aprox }}{{ g.nr_dosare }} dosare</b> cu aceeași problemă
+  </p>
+  {% if g.aprox %}<p class="muted" style="margin:0">(eșantion — numărul real e mai mare)</p>{% endif %}
+  {% if g.prima_data %}<p class="muted">Perioadă: {{ g.prima_data }} → {{ g.ultima_data }}</p>{% endif %}
+</div>
+
+<div class="card" style="background:#f0f5fb;border-color:#cfe0f2">
+  <p style="margin:0">
+    💡 Dacă ai și tu un litigiu de acest tip împotriva <b>{{ g.parat }}</b>, nu ești
+    singur — sunt cel puțin {{ g.nr_dosare }} dosare similare. Poți consulta un avocat
+    și verifica soluțiile pe <a href="https://portal.just.ro" target="_blank" rel="noopener">portal.just.ro</a>.
+  </p>
+</div>
+
+{% if g.instante %}
+<div class="card">
+  <h3 style="margin-top:0">Pe instanțe</h3>
+  <table>
+    <thead><tr><th>Instanță</th><th>Dosare</th></tr></thead>
+    <tbody>
+      {% for inst, n in g.instante.items() %}
+      <tr><td>{{ inst }}</td><td>{{ n }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if g.exemple %}
+<div class="card">
+  <h3 style="margin-top:0">Exemple de dosare</h3>
+  <table>
+    <thead><tr><th>Număr</th><th>Instanță</th><th>Dată</th></tr></thead>
+    <tbody>
+      {% for e in g.exemple %}
+      <tr><td>{{ e.numar }}</td><td>{{ e.instanta }}</td><td>{{ (e.data or '')[:10] }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% endblock %}
