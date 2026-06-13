@@ -448,46 +448,21 @@ def query_names(domenii: tuple[str, ...] | None = None) -> list[str]:
 # Catalog EXTINS de tipuri de obiect pentru descoperire, pe domenii suplimentare
 # (asigurări, telecom, recuperare creanțe, retail, turism, investiții, servicii...).
 # Completat din workflow `extindere-domenii-zamolxis`. {query, label, domeniu}.
+# IMPORTANT: `query` trebuie să fie un SUBSTRING SCURT și DISTINCTIV (ECRIS face match
+# de substring exact pe câmpul obiect; frazele lungi nu se potrivesc). Domeniile unde
+# obiectul NU e discriminant (asigurări/telecom/investiții — firma e adesea reclamant)
+# se acoperă prin PARATI_MASA, nu prin descoperire pe obiect.
 OBIECTE_DESCOPERIRE: list[dict] = [
-    # asigurări (falimente RCA: City Insurance, Euroins, Astra + FGA)
-    {"query": "contestatie decizie respingere cerere de plata fond garantare", "label": "Contestație decizie FGA de respingere a plății", "domeniu": "asigurari"},
-    {"query": "contestatie decizie fond de garantare a asiguratilor", "label": "Contestație decizie FGA (L.213/2015)", "domeniu": "asigurari"},
-    {"query": "contestatie tabel creante asigurator faliment", "label": "Contestație tabel creanțe (faliment asigurător)", "domeniu": "asigurari"},
-    {"query": "pretentii despagubiri rca asigurator faliment", "label": "Despăgubiri RCA de la asigurător în faliment", "domeniu": "asigurari"},
-    {"query": "pretentii asigurare casco daune", "label": "Despăgubire CASCO / daune", "domeniu": "asigurari"},
-    {"query": "restituire prima de asigurare reziduala faliment asigurator", "label": "Restituire primă reziduală (poliță încetată la faliment)", "domeniu": "asigurari"},
-    # recuperare creanțe / IFN
-    {"query": "constatare nulitate clauze abuzive", "label": "Clauze abuzive credit de consum", "domeniu": "recuperare"},
-    {"query": "contestatie la poprire", "label": "Contestație la poprire (recuperator)", "domeniu": "recuperare"},
-    # telecom
-    {"query": "rezolutiune contract", "label": "Reziliere/rezoluțiune abonament telecom", "domeniu": "telecom"},
-    {"query": "drepturi consumatori", "label": "Litigiu protecția consumatorilor vs. operator", "domeniu": "telecom"},
-    # retail / garanții
-    {"query": "rezolutiune contract vanzare cumparare bun mobil", "label": "Rezoluțiune vânzare bun cu defect", "domeniu": "retail"},
-    {"query": "obligatia de a face inlocuire produs neconform garantie", "label": "Înlocuire/reparare produs în garanție (OUG 140/2021)", "domeniu": "retail"},
-    {"query": "actiune in raspundere pentru vicii ascunse bun vandut", "label": "Vicii ascunse ale bunului vândut", "domeniu": "retail"},
-    {"query": "rezolutiune contract restituire pret produs defect", "label": "Rezoluțiune + restituire preț produs defect", "domeniu": "retail"},
-    # turism / transport pasageri
-    {"query": "pretentii pachet turistic", "label": "Preț pachet turistic neonorat", "domeniu": "turism"},
-    {"query": "restituire pret pachet servicii turistice", "label": "Restituire preț pachet turistic", "domeniu": "turism"},
-    {"query": "rezolutiune contract servicii turistice", "label": "Rezoluțiune contract servicii turistice", "domeniu": "turism"},
-    {"query": "despagubiri pachet turistic neexecutat", "label": "Despăgubiri pachet turistic neexecutat", "domeniu": "turism"},
-    {"query": "compensatie pasageri zbor intarziat anulat", "label": "Compensație pasageri aerieni (Reg. 261/2004)", "domeniu": "turism"},
-    {"query": "restituire contravaloare bilet avion", "label": "Restituire contravaloare bilet avion", "domeniu": "turism"},
-    {"query": "despagubiri intarziere tren restituire bilet", "label": "Despăgubiri întârziere tren / bilet feroviar", "domeniu": "turism"},
-    # imobiliare extins
-    {"query": "rezolutiune antecontract de vanzare cumparare", "label": "Rezoluțiune antecontract + restituire avans", "domeniu": "imobiliare"},
-    {"query": "obligatia de a incheia contractul de vanzare in forma autentica", "label": "Obligare la actul autentic (refuz dezvoltator)", "domeniu": "imobiliare"},
-    {"query": "penalitati de intarziere predare imobil", "label": "Penalități întârziere predare apartament", "domeniu": "imobiliare"},
-    {"query": "restituire avans antecontract", "label": "Restituire avans antecontract apartament", "domeniu": "imobiliare"},
-    # investiții / fraude
-    {"query": "imbogatire fara justa cauza", "label": "Îmbogățire fără justă cauză (restituire sume)", "domeniu": "investitii"},
-    {"query": "despagubiri investitori fni", "label": "Despăgubiri investitori FNI (vs. stat/AAAS)", "domeniu": "investitii"},
-    # servicii cu abonament (fitness, educație privată, clinici)
-    {"query": "actiune in constatare clauze abuzive abonament", "label": "Clauze abuzive în contract de abonament", "domeniu": "servicii"},
-    {"query": "reziliere contract prestari servicii restituire taxa", "label": "Reziliere abonament + restituire taxă", "domeniu": "servicii"},
-    {"query": "restituire taxa de scolarizare", "label": "Restituire taxă școlarizare (educație privată)", "domeniu": "servicii"},
-    {"query": "pretentii penalitati reziliere anticipata abonament", "label": "Penalități reziliere anticipată abonament", "domeniu": "servicii"},
+    # retail / garanții (obiect discriminant)
+    {"query": "vicii ascunse", "label": "Vicii ascunse ale bunului vândut", "domeniu": "retail"},
+    {"query": "produs neconform", "label": "Produs neconform / garanție (OUG 140/2021)", "domeniu": "retail"},
+    # turism (obiect discriminant)
+    {"query": "pachet turistic", "label": "Pachet turistic neonorat / despăgubiri", "domeniu": "turism"},
+    {"query": "servicii turistice", "label": "Contract servicii turistice", "domeniu": "turism"},
+    # servicii (obiect discriminant)
+    {"query": "taxa de scolarizare", "label": "Restituire taxă școlarizare (educație privată)", "domeniu": "servicii"},
+    # recuperare (obiect discriminant pentru cesiuni)
+    {"query": "cesiune de creanta", "label": "Cesiune de creanță (recuperator)", "domeniu": "recuperare"},
 ]
 
 

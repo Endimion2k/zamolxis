@@ -1,46 +1,86 @@
 :root{
-  --bg:#f5f3ee; --card:#fff; --ink:#221a12; --muted:#7a7065;
+  --bg:#f5f3ee; --card:#fff; --ink:#221a12; --muted:#6f6457;
   --line:#e6e0d6; --accent:#9a3412; --accent-d:#7c2d12; --gold:#b8860b;
-  --ok:#1d6b3f; --warn:#9a6b15;
+  --gold-d:#8a6608; --ok:#1d6b3f; --warn:#8a5d12; --shadow:0 1px 3px rgba(40,28,14,.08);
 }
 *{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{margin:0;font:16px/1.55 "Segoe UI",system-ui,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
 a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
-header{background:linear-gradient(135deg,#3a2417,#5a3420);color:#f5ecd9;padding:16px 20px;border-bottom:3px solid var(--gold)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:6px}
+
+/* ---- header (se derulează) ---- */
+header{background:linear-gradient(135deg,#3a2417,#5a3420);color:#f5ecd9;padding:14px 20px;border-bottom:3px solid var(--gold)}
 header .wrap{max-width:1000px;margin:0 auto}
-.brand{display:flex;align-items:center;gap:14px}
-.brand h1{margin:0;font-size:26px;letter-spacing:.04em}
-.brand .tag{margin:0;color:var(--gold);font-size:14px;font-weight:600}
-.brand .sub{margin:2px 0 0;color:#d8c9af;font-size:13px;max-width:640px}
-nav{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
-nav button{color:#f5ecd9;background:rgba(255,255,255,.10);padding:6px 14px;border:0;border-radius:20px;font-size:14px;font-weight:600;cursor:pointer}
-nav button:hover{background:rgba(255,255,255,.22)}
-nav button.activ{background:var(--gold);color:#3a2417}
-.wrap{max-width:1000px;margin:0 auto;padding:20px}
-.disclaimer{background:#fbf3df;border:1px solid #e9d6a3;color:#6b521a;font-size:13.5px;border-radius:8px;padding:10px 14px;margin:16px auto;max-width:1000px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
-.hero{text-align:center;padding:26px}
-.hero h2{margin:0 0 6px;font-size:24px}
-.hero p{margin:0 auto 16px;color:var(--muted);max-width:620px}
-.searchbar{display:flex;gap:8px;max-width:640px;margin:0 auto}
-.searchbar input{flex:1;padding:11px 13px;border:1px solid var(--line);border-radius:8px;font-size:15px}
-select,input[type=text]{padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:#fff}
-.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
-.filters label{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
-.badge{display:inline-block;font-size:12px;font-weight:600;border-radius:20px;padding:2px 10px;color:#fff}
+.brand{display:flex;align-items:center;gap:13px}
+.brand h1{margin:0;font-size:23px;letter-spacing:.05em;line-height:1}
+.brand .tag{margin:2px 0 0;color:var(--gold);font-size:13px;font-weight:700;letter-spacing:.02em}
+.brand .sub{margin:8px 0 0;color:#d8c9af;font-size:13px;max-width:680px}
+
+/* ---- bară sticky: căutare + taburi (mereu la îndemână) ---- */
+.toolbar{position:sticky;top:0;z-index:9;background:rgba(245,243,238,.96);
+  backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:12px 20px}
+.toolbar .wrap{max-width:1000px;margin:0 auto}
+.searchbar{display:flex;gap:8px}
+.searchbar input{flex:1;padding:13px 15px;border:2px solid var(--line);border-radius:10px;font-size:16px;background:#fff}
+.searchbar input:focus{border-color:var(--gold);outline:none}
+.searchbar button{min-height:48px;padding:0 20px;background:var(--accent);color:#fff;border:0;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+.searchbar button:hover{background:var(--accent-d)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.tabs button{min-height:40px;padding:0 16px;background:#fff;border:1px solid var(--line);border-radius:22px;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer}
+.tabs button:hover{border-color:var(--gold)}
+.tabs button[aria-current=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.wrap{max-width:1000px;margin:0 auto;padding:18px 20px}
+.disclaimer{background:#fbf3df;border-bottom:1px solid #e9d6a3;color:#6b521a;font-size:13px;padding:8px 20px}
+.disclaimer .wrap{max-width:1000px;margin:0 auto;padding:0}
+
+/* ---- carduri & liste (responsive, fără tabel) ---- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.lead{text-align:center;padding:10px 0 4px}
+.lead h2{margin:0 0 4px;font-size:22px}
+.lead p{margin:0 auto;color:var(--muted);max-width:600px;font-size:15px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.chips button{background:#f0e6d2;color:var(--accent-d);border:0;border-radius:20px;padding:7px 14px;font-size:13.5px;font-weight:600;cursor:pointer}
+.chips button:hover{background:#e7d8bc}
+.statbar{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin:4px 0 18px;color:var(--muted);font-size:14px}
+.statbar b{font-size:20px;color:var(--accent-d);display:block}
+.sectiune-titlu{font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;margin:18px 4px 8px}
+
+.lista{display:flex;flex-direction:column;gap:10px}
+button.rezultat{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:14px 16px;cursor:pointer;font:inherit;color:inherit;box-shadow:var(--shadow);transition:border-color .12s,transform .05s}
+button.rezultat:hover{border-color:var(--gold)}
+button.rezultat:active{transform:translateY(1px)}
+.rez-titlu{font-size:16px;font-weight:600;margin:0 0 4px;color:var(--ink)}
+.rez-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted)}
+.count{margin-left:auto;font-weight:700;color:var(--accent-d);font-size:18px;white-space:nowrap}
+.rez-top{display:flex;align-items:flex-start;gap:12px}
+.rez-top>div{flex:1;min-width:0}
+
+.badge{display:inline-block;font-size:12px;font-weight:600;border-radius:20px;padding:3px 10px;color:#fff}
 .b-confirmat{background:var(--ok)} .b-revizuire{background:var(--warn)}
-.b-dom{background:#f0e6d2;color:var(--accent-d);font-weight:600}
+.b-dom{background:#f0e6d2;color:var(--accent-d)}
 .muted{color:var(--muted);font-size:13.5px}
-.stat{display:inline-block;margin-right:22px} .stat b{font-size:22px;color:var(--accent-d)}
-table{width:100%;border-collapse:collapse;font-size:14.5px}
-th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
-th{color:var(--muted);font-weight:600;font-size:12.5px;text-transform:uppercase}
-tr.clickabil{cursor:pointer} tr.clickabil:hover{background:#faf7f1}
-.num{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
-footer{color:var(--muted);font-size:13px;text-align:center;padding:24px;line-height:1.7}
-.hidden{display:none}
-/* modal detaliu */
-.overlay{position:fixed;inset:0;background:rgba(34,26,18,.55);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow:auto;z-index:10}
-.modal{background:var(--card);border-radius:14px;max-width:760px;width:100%;padding:22px;margin-top:20px}
-.modal .x{float:right;cursor:pointer;font-size:22px;color:var(--muted);background:none;border:0}
+.gol{text-align:center;color:var(--muted);padding:30px 16px}
+
+/* ---- modal detaliu ---- */
+.overlay{position:fixed;inset:0;background:rgba(34,26,18,.55);display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow:auto;z-index:20}
+.modal{background:var(--card);border-radius:16px;max-width:760px;width:100%;padding:24px;margin:24px 0;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.modal .x{float:right;cursor:pointer;font-size:26px;line-height:1;color:var(--muted);background:none;border:0;min-width:44px;min-height:44px}
+.modal h2{margin:0 8px 6px 0}
+.modal table{width:100%;border-collapse:collapse;font-size:14.5px}
+.modal td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 .pills{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.cta{background:#f0f5fb;border:1px solid #cfe0f2;border-radius:10px;padding:12px 14px;margin-top:14px}
+
+footer{color:var(--muted);font-size:13px;text-align:center;padding:26px 20px;line-height:1.7}
+
+/* ---- mobil ---- */
+@media (max-width:560px){
+  .brand .sub{display:none}
+  .brand h1{font-size:20px}
+  .lead h2{font-size:19px}
+  .count{font-size:16px}
+  .modal{padding:18px}
+}

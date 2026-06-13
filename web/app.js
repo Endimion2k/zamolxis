@@ -1,203 +1,207 @@
 "use strict";
-let DATA = null;
-let tab = "colective";
+let DATA = null, tab = "colective", fdom = "";
+let lastFocus = null;
 
-const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => (s == null ? "" : String(s).replace(/[&<>"]/g, c =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])));
+const norm = (s) => (s || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
 const main = () => document.getElementById("main");
-const esc = (s) => (s == null ? "" : String(s).replace(/[&<>"]/g, c => (
-  { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])));
-const norm = (s) => (s || "").toLowerCase()
-  .normalize("NFKD").replace(/[̀-ͯ]/g, "");
-
-function domLabel(cod) { return (DATA.domenii && DATA.domenii[cod]) || cod || "—"; }
-function nivLabel(cod) { return (DATA.niveluri && DATA.niveluri[cod]) || cod; }
+const qval = () => document.getElementById("q").value.trim();
+const domLabel = (c) => (DATA.domenii && DATA.domenii[c]) || c || "—";
+const nivLabel = (c) => (DATA.niveluri && DATA.niveluri[c]) || c;
 
 // ---- boot ----
 fetch("data.json").then(r => r.json()).then(d => {
   DATA = d;
   document.getElementById("generat").textContent = d.generat_la || "—";
-  document.querySelectorAll("nav button").forEach(b =>
-    b.addEventListener("click", () => { tab = b.dataset.tab; setActive(); render(); }));
+  const q = document.getElementById("q");
+  q.addEventListener("input", render);
+  document.getElementById("q-btn").addEventListener("click", () => { render(); q.focus(); });
+  document.querySelectorAll(".tabs button").forEach(b =>
+    b.addEventListener("click", () => { tab = b.dataset.tab; fdom = ""; setTabs(); render(); }));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") inchide(); });
   render();
-}).catch(e => { main().innerHTML =
-  `<div class="card"><p class="muted">Nu am putut încărca datele (${esc(e.message)}).</p></div>`; });
+}).catch(e => { main().innerHTML = `<div class="gol">Nu am putut încărca datele (${esc(e.message)}).</div>`; });
 
-function setActive() {
-  document.querySelectorAll("nav button").forEach(b =>
-    b.classList.toggle("activ", b.dataset.tab === tab));
+function setTabs() {
+  document.querySelectorAll(".tabs button").forEach(b =>
+    b.setAttribute("aria-current", String(b.dataset.tab === tab)));
+}
+
+function matches(it, q, campuri) {
+  const nq = norm(q);
+  return !nq || norm(campuri.map(c => it[c]).join(" ")).includes(nq);
 }
 
 function render() {
+  const q = qval();
+  if (q) return renderCautare(q);
   if (tab === "despre") return renderDespre();
   if (tab === "valuri") return renderValuri();
   return renderColective();
 }
 
-// ---- filtre comune (state din DOM) ----
-function filtru(items, { q, domeniu, nivel }, campuri) {
-  const nq = norm(q);
-  return items.filter(it => {
-    if (domeniu && it.domeniu !== domeniu) return false;
-    if (nivel && it.nivel !== nivel) return false;
-    if (nq) {
-      const hay = norm(campuri.map(c => it[c]).join(" "));
-      if (!hay.includes(nq)) return false;
-    }
-    return true;
-  });
-}
-
-function domeniiOptions(items, sel) {
-  const set = [...new Set(items.map(i => i.domeniu).filter(Boolean))].sort();
-  return `<option value="">Toate domeniile</option>` + set.map(d =>
-    `<option value="${d}" ${d === sel ? "selected" : ""}>${esc(domLabel(d))}</option>`).join("");
-}
-
-// ---- ACȚIUNI COLECTIVE ----
-function renderColective() {
-  const s = DATA.stats || {};
-  main().innerHTML = `
-    <div class="card hero">
-      <h2>Ești posibil păgubit? Verifică.</h2>
-      <p>Caută o firmă, o instituție sau problema ta (ex: <i>bancă, clauze abuzive, mediu</i>)
-        și află dacă există deja un proces colectiv la care te poți raporta.</p>
-      <div class="searchbar">
-        <input id="q" type="text" placeholder="Caută firma, instituția sau problema ta…">
-        <button onclick="render()">Caută</button>
-      </div>
-    </div>
-    <div class="card">
-      <span class="stat"><b>${(DATA.cazuri||[]).length}</b><br><span class="muted">acțiuni colective</span></span>
-      <span class="stat"><b>${s.confirmate||0}</b><br><span class="muted">confirmate</span></span>
-      <span class="stat"><b>${(DATA.grupuri||[]).length}</b><br><span class="muted">valuri de procese</span></span>
-    </div>
-    <div class="card">
-      <div class="filters">
-        <div><label>Domeniu</label><select id="fd">${domeniiOptions(DATA.cazuri,"")}</select></div>
-        <div><label>Stare</label><select id="fn">
-          <option value="">Toate</option><option value="confirmat">Confirmat</option><option value="revizuire">De verificat</option>
-        </select></div>
-      </div>
-    </div>
-    <div id="rez"></div>`;
-  wire(["q", "fd", "fn"]);
-  listColective();
-}
-
-function listColective() {
-  const f = { q: val("q"), domeniu: val("fd"), nivel: val("fn") };
-  const rows = filtru(DATA.cazuri || [], f, ["numar", "obiect", "rezumat", "instanta"])
+// ---- căutare globală (peste ambele seturi) ----
+function renderCautare(q) {
+  const caz = (DATA.cazuri || []).filter(c => matches(c, q, ["numar", "obiect", "rezumat", "instanta"]))
     .sort((a, b) => b.scor - a.scor);
-  $("#rez").innerHTML = rows.length ? `
-    <div class="card" style="padding:0;overflow:hidden"><table>
-      <thead><tr><th>Dosar</th><th>Domeniu</th><th>Rezumat</th><th>Stare</th></tr></thead>
-      <tbody>${rows.slice(0, 200).map((c, i) => `
-        <tr class="clickabil" onclick="detaliuCaz(${DATA.cazuri.indexOf(c)})">
-          <td><b>${esc(c.numar)}</b><br><span class="num">${esc(c.instanta)}</span></td>
-          <td>${c.domeniu ? `<span class="badge b-dom">${esc(domLabel(c.domeniu))}</span>` : "—"}</td>
-          <td>${esc(c.rezumat || c.obiect)}</td>
-          <td><span class="badge b-${esc(c.nivel)}">${esc(nivLabel(c.nivel))}</span><div class="num">scor ${c.scor}</div></td>
-        </tr>`).join("")}</tbody></table></div>
-    <p class="muted">${rows.length} rezultate${rows.length > 200 ? " (primele 200)" : ""}.</p>`
-    : `<div class="card"><p class="muted">Niciun rezultat. Încearcă alt cuvânt sau vezi valurile de procese.</p></div>`;
+  const grp = (DATA.grupuri || []).filter(g => matches(g, q, ["parat", "obiect_tip"]))
+    .sort((a, b) => b.nr_dosare - a.nr_dosare);
+  let html = `<p class="muted" style="margin:6px 4px 14px">Rezultate pentru „<b>${esc(q)}</b>" —
+    ${caz.length} acțiuni colective, ${grp.length} valuri de procese.
+    <button onclick="clearQ()" style="background:none;border:0;color:var(--accent);cursor:pointer;font:inherit;text-decoration:underline">renunță</button></p>`;
+  if (!caz.length && !grp.length)
+    html += `<div class="gol">Niciun rezultat pentru „${esc(q)}". Încearcă alt cuvânt — o firmă, o instituție sau o problemă.</div>`;
+  if (caz.length) html += `<div class="sectiune-titlu">⚖️ Acțiuni colective (${caz.length})</div>` + listaCazuri(caz);
+  if (grp.length) html += `<div class="sectiune-titlu">🌊 Valuri de procese identice (${grp.length})</div>` + listaGrupuri(grp);
+  main().innerHTML = html;
+}
+function clearQ() { document.getElementById("q").value = ""; render(); }
+
+// ---- tab: acțiuni colective ----
+function renderColective() {
+  const total = (DATA.cazuri || []).length;
+  main().innerHTML = `
+    <div class="lead">
+      <h2>Ești posibil păgubit? Verifică.</h2>
+      <p>Caută mai sus o firmă, o instituție sau problema ta — vezi dacă există deja un proces la care te poți raporta.</p>
+      <div class="chips">
+        ${["bancă", "pensii", "asigurări", "Nordis", "mediu", "telefonie"].map(c =>
+          `<button onclick="quick('${c}')">${c}</button>`).join("")}
+      </div>
+    </div>
+    <div class="statbar">
+      <span><b>${total}</b> acțiuni colective</span>
+      <span><b>${(DATA.stats && DATA.stats.confirmate) || 0}</b> confirmate</span>
+      <span><b>${(DATA.grupuri || []).length}</b> valuri de procese</span>
+    </div>
+    ${filtruDomeniu(DATA.cazuri)}
+    <div id="lst"></div>`;
+  pictaCazuri();
+}
+function pictaCazuri() {
+  const rows = (DATA.cazuri || []).filter(c => !fdom || c.domeniu === fdom).sort((a, b) => b.scor - a.scor);
+  document.getElementById("lst").innerHTML = rows.length
+    ? listaCazuri(rows) + `<p class="muted" style="margin-top:10px">${rows.length} rezultate.</p>`
+    : `<div class="gol">Niciun rezultat pentru filtrul ales.</div>`;
 }
 
-// ---- VALURI ----
+// ---- tab: valuri ----
 function renderValuri() {
   main().innerHTML = `
-    <div class="card hero">
+    <div class="lead">
       <h2>Valuri de procese identice</h2>
-      <p>Mii de oameni dau în judecată separat aceeași instituție/firmă pentru aceeași
-        problemă. Vezi dacă <b>ai și tu același caz</b>.</p>
-      <div class="searchbar">
-        <input id="q" type="text" placeholder="Caută instituția, firma sau tipul de problemă…">
-        <button onclick="render()">Caută</button>
-      </div>
+      <p>Mii de oameni dau în judecată separat aceeași instituție sau firmă pentru aceeași problemă. Vezi dacă <b>ai și tu același caz</b>.</p>
     </div>
-    <div class="card">
-      <div class="filters"><div><label>Domeniu</label>
-        <select id="fd">${domeniiOptions(DATA.grupuri,"")}</select></div></div>
-    </div>
-    <div id="rez"></div>`;
-  wire(["q", "fd"]);
-  listValuri();
+    ${filtruDomeniu(DATA.grupuri)}
+    <div id="lst"></div>`;
+  pictaGrupuri();
+}
+function pictaGrupuri() {
+  const rows = (DATA.grupuri || []).filter(g => !fdom || g.domeniu === fdom).sort((a, b) => b.nr_dosare - a.nr_dosare);
+  document.getElementById("lst").innerHTML = rows.length
+    ? listaGrupuri(rows) + `<p class="muted" style="margin-top:10px">${rows.length} valuri.</p>`
+    : `<div class="gol">Niciun val pentru filtrul ales.</div>`;
 }
 
-function listValuri() {
-  const f = { q: val("q"), domeniu: val("fd") };
-  const rows = filtru(DATA.grupuri || [], f, ["parat", "obiect_tip"])
-    .sort((a, b) => b.nr_dosare - a.nr_dosare);
-  $("#rez").innerHTML = rows.length ? `
-    <div class="card" style="padding:0;overflow:hidden"><table>
-      <thead><tr><th>Problema</th><th>Împotriva</th><th>Domeniu</th><th>Dosare</th></tr></thead>
-      <tbody>${rows.slice(0, 200).map(g => `
-        <tr class="clickabil" onclick="detaliuGrup(${DATA.grupuri.indexOf(g)})">
-          <td><b>${esc(g.obiect_tip)}</b></td>
-          <td>${esc(g.parat)}</td>
-          <td>${g.domeniu ? `<span class="badge b-dom">${esc(domLabel(g.domeniu))}</span>` : "—"}</td>
-          <td><b>${g.aprox ? "≥" : ""}${g.nr_dosare}</b></td>
-        </tr>`).join("")}</tbody></table></div>
-    <p class="muted">${rows.length} valuri.</p>`
-    : `<div class="card"><p class="muted">Niciun val pentru filtrele alese.</p></div>`;
+// ---- liste de carduri ----
+function listaCazuri(rows) {
+  return `<div class="lista">` + rows.slice(0, 300).map(c => {
+    const i = DATA.cazuri.indexOf(c);
+    return `<button class="rezultat" onclick="detaliuCaz(${i})" aria-label="Detalii dosar ${esc(c.numar)}">
+      <p class="rez-titlu">${esc(c.rezumat || c.obiect)}</p>
+      <div class="rez-meta">
+        ${c.domeniu ? `<span class="badge b-dom">${esc(domLabel(c.domeniu))}</span>` : ""}
+        <span class="badge b-${esc(c.nivel)}">${esc(nivLabel(c.nivel))}</span>
+        <span>${esc(c.instanta)}</span><span>· dosar ${esc(c.numar)}</span>
+      </div></button>`;
+  }).join("") + `</div>`;
+}
+function listaGrupuri(rows) {
+  return `<div class="lista">` + rows.slice(0, 300).map(g => {
+    const i = DATA.grupuri.indexOf(g);
+    return `<button class="rezultat" onclick="detaliuGrup(${i})" aria-label="Detalii val ${esc(g.obiect_tip)}">
+      <div class="rez-top">
+        <div>
+          <p class="rez-titlu">${esc(g.obiect_tip)}</p>
+          <div class="rez-meta">împotriva <b>${esc(g.parat)}</b>
+            ${g.domeniu ? `<span class="badge b-dom">${esc(domLabel(g.domeniu))}</span>` : ""}</div>
+        </div>
+        <span class="count">${g.aprox ? "≥" : ""}${g.nr_dosare}<br><small class="muted">dosare</small></span>
+      </div></button>`;
+  }).join("") + `</div>`;
 }
 
-// ---- DESPRE ----
+function filtruDomeniu(items) {
+  const set = [...new Set(items.map(i => i.domeniu).filter(Boolean))].sort();
+  if (!set.length) return "";
+  return `<div style="margin-bottom:6px"><select onchange="setDom(this.value)" aria-label="Filtrează după domeniu">
+    <option value="">Toate domeniile</option>
+    ${set.map(d => `<option value="${d}" ${d === fdom ? "selected" : ""}>${esc(domLabel(d))}</option>`).join("")}
+  </select></div>`;
+}
+function setDom(v) { fdom = v; tab === "valuri" ? pictaGrupuri() : pictaCazuri(); }
+function quick(q) { const e = document.getElementById("q"); e.value = q; render(); e.focus(); }
+
+// ---- despre ----
 function renderDespre() {
   main().innerHTML = `
     <div class="card"><h2 style="margin-top:0">De ce „Zamolxis"</h2>
-      <p>Zamolxis era, în tradiția daco-getică, divinitatea legii și a dreptății — cel care aduna
-        oamenii și le dădea legile. Platforma face același lucru: <b>strânge laolaltă oamenii
-        păgubiți</b> și le arată unde stă dreptatea, în datele publice ale instanțelor.</p></div>
+      <p>Zamolxis era, în tradiția daco-getică, divinitatea legii și a dreptății — cel care aduna oamenii
+        și le dădea legile. Platforma face același lucru: <b>strânge laolaltă oamenii păgubiți</b> și le arată
+        unde stă dreptatea, în datele publice ale instanțelor.</p></div>
     <div class="card"><h2 style="margin-top:0">Ce găsești aici</h2>
       <p><b>Acțiuni colective</b> — procese pornite de asociații/ONG-uri pentru un grup.</p>
-      <p><b>Valuri de procese identice</b> — mii de dosare individuale separate cu aceeași
-        problemă vs. aceeași instituție/firmă (pensii, taxe, apartamente nelivrate ca la Nordis).</p></div>
+      <p><b>Valuri de procese identice</b> — mii de dosare individuale separate cu aceeași problemă împotriva
+        aceleiași instituții/firme (pensii, asigurări, taxe, apartamente nelivrate ca la Nordis).</p></div>
     <div class="card" style="background:#fbf3df;border-color:#e9d6a3"><p style="margin:0;color:#6b521a">
-      <b>Important.</b> Informație orientativă, <b>nu</b> consultanță juridică. Clasificarea automată
-      poate greși („de verificat"). Consultă un avocat și verifică la
+      <b>Important.</b> Informație orientativă, <b>nu</b> consultanță juridică. Clasificarea automată poate greși
+      („de verificat"). Consultă un avocat și verifică la
       <a href="https://portal.just.ro" target="_blank" rel="noopener">portal.just.ro</a>.</p></div>`;
 }
 
-// ---- detalii (modal) ----
-function inchide() { document.getElementById("detaliu").innerHTML = ""; }
+// ---- modal detaliu (focus + Escape) ----
+function inchide() {
+  const d = document.getElementById("detaliu");
+  if (!d.innerHTML) return;
+  d.innerHTML = "";
+  if (lastFocus) { lastFocus.focus(); lastFocus = null; }
+}
 function modal(html) {
-  document.getElementById("detaliu").innerHTML =
-    `<div class="overlay" onclick="if(event.target===this)inchide()"><div class="modal">
-      <button class="x" onclick="inchide()">×</button>${html}</div></div>`;
+  lastFocus = document.activeElement;
+  const d = document.getElementById("detaliu");
+  d.innerHTML = `<div class="overlay" onclick="if(event.target===this)inchide()" role="dialog" aria-modal="true">
+    <div class="modal"><button class="x" onclick="inchide()" aria-label="Închide">×</button>${html}</div></div>`;
+  const x = d.querySelector(".x"); if (x) x.focus();
 }
 
 function detaliuCaz(i) {
   const c = DATA.cazuri[i]; if (!c) return;
   modal(`
-    <h2 style="margin:0 4px 4px 0">Dosar ${esc(c.numar)}</h2>
-    <p class="muted">${esc(c.instanta)}${c.stadiu ? " · " + esc(c.stadiu) : ""}
-      ${c.domeniu ? ` · <span class="badge b-dom">${esc(domLabel(c.domeniu))}</span>` : ""}
-      · <span class="badge b-${esc(c.nivel)}">${esc(nivLabel(c.nivel))} · scor ${c.scor}</span></p>
+    <h2>Dosar ${esc(c.numar)}</h2>
+    <p class="muted">${esc(c.instanta)}${c.stadiu ? " · " + esc(c.stadiu) : ""}</p>
+    <div class="pills">
+      ${c.domeniu ? `<span class="badge b-dom">${esc(domLabel(c.domeniu))}</span>` : ""}
+      <span class="badge b-${esc(c.nivel)}">${esc(nivLabel(c.nivel))}</span></div>
     ${c.rezumat ? `<p style="font-size:17px"><b>${esc(c.rezumat)}</b></p>` : ""}
     <p><span class="muted">Obiect:</span><br>${esc(c.obiect || "—")}</p>
-    ${(c.motive && c.motive.length) ? `<p class="muted">De ce a fost marcat:</p><ul>${c.motive.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>` : ""}
-    ${(c.parti && c.parti.length) ? `<h3>Părți</h3><table><tbody>${c.parti.map(p=>`<tr><td>${esc(p.nume)}</td><td class="muted">${esc(p.calitate)}</td></tr>`).join("")}</tbody></table><p class="muted">Persoanele fizice sunt afișate cu inițiale.</p>` : ""}
-    <p style="margin-top:14px"><a href="https://portal.just.ro" target="_blank" rel="noopener">🔎 Verifică dosarul ${esc(c.numar)} pe portal.just.ro →</a></p>`);
+    ${(c.motive && c.motive.length) ? `<p class="muted">De ce a fost marcat:</p><ul>${c.motive.map(m => `<li>${esc(m)}</li>`).join("")}</ul>` : ""}
+    ${(c.parti && c.parti.length) ? `<h3>Părți</h3><table><tbody>${c.parti.map(p => `<tr><td>${esc(p.nume)}</td><td class="muted">${esc(p.calitate)}</td></tr>`).join("")}</tbody></table><p class="muted">Persoanele fizice sunt afișate cu inițiale.</p>` : ""}
+    <div class="cta"><a href="https://portal.just.ro" target="_blank" rel="noopener">🔎 Verifică dosarul ${esc(c.numar)} pe portal.just.ro →</a></div>`);
 }
-
 function detaliuGrup(i) {
   const g = DATA.grupuri[i]; if (!g) return;
-  const inst = g.instante ? Object.entries(g.instante).sort((a,b)=>b[1]-a[1]) : [];
+  const inst = g.instante ? Object.entries(g.instante).sort((a, b) => b[1] - a[1]) : [];
   modal(`
-    <h2 style="margin:0 4px 4px 0">${esc(g.obiect_tip)}</h2>
+    <h2>${esc(g.obiect_tip)}</h2>
     <p class="muted">împotriva <b>${esc(g.parat)}</b>${g.domeniu ? ` · <span class="badge b-dom">${esc(domLabel(g.domeniu))}</span>` : ""}</p>
-    <p style="font-size:19px"><b>${g.aprox ? "≥ " : ""}${g.nr_dosare} dosare</b> cu aceeași problemă</p>
+    <p style="font-size:20px"><b>${g.aprox ? "≥ " : ""}${g.nr_dosare} dosare</b> cu aceeași problemă</p>
     ${g.prima_data ? `<p class="muted">Perioadă: ${esc(g.prima_data)} → ${esc(g.ultima_data)}</p>` : ""}
-    <div class="card" style="background:#f0f5fb;border-color:#cfe0f2"><p style="margin:0">💡 Dacă ai și tu un astfel de litigiu împotriva <b>${esc(g.parat)}</b>, nu ești singur — sunt cel puțin ${g.nr_dosare} dosare similare.</p></div>
-    ${inst.length ? `<h3>Pe instanțe</h3><table><tbody>${inst.slice(0,12).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join("")}</tbody></table>` : ""}
-    ${(g.exemple&&g.exemple.length) ? `<h3>Exemple de dosare</h3><table><tbody>${g.exemple.map(e=>`<tr><td>${esc(e.numar)}</td><td class="muted">${esc(e.instanta)}</td><td class="num">${esc((e.data||"").slice(0,10))}</td></tr>`).join("")}</tbody></table>` : ""}
-    <p style="margin-top:14px"><a href="https://portal.just.ro" target="_blank" rel="noopener">🔎 Caută aceste dosare pe portal.just.ro →</a></p>`);
+    <div class="cta">💡 Dacă ai și tu un astfel de litigiu împotriva <b>${esc(g.parat)}</b>, nu ești singur — sunt cel puțin ${g.nr_dosare} dosare similare.</div>
+    ${inst.length ? `<h3>Pe instanțe</h3><table><tbody>${inst.slice(0, 12).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join("")}</tbody></table>` : ""}
+    ${(g.exemple && g.exemple.length) ? `<h3>Exemple de dosare</h3><table><tbody>${g.exemple.map(e => `<tr><td>${esc(e.numar)}</td><td class="muted">${esc(e.instanta)}</td></tr>`).join("")}</tbody></table>` : ""}
+    <div class="cta"><a href="https://portal.just.ro" target="_blank" rel="noopener">🔎 Caută aceste dosare pe portal.just.ro →</a></div>`);
 }
 
-// ---- helpers ----
-function val(id) { const e = document.getElementById(id); return e ? e.value.trim() : ""; }
-function wire(ids) {
-  ids.forEach(id => { const e = document.getElementById(id); if (!e) return;
-    e.addEventListener(id === "q" ? "input" : "change", () => tab === "valuri" ? listValuri() : listColective()); });
-}
-window.render = render; window.detaliuCaz = detaliuCaz; window.detaliuGrup = detaliuGrup; window.inchide = inchide;
+window.render = render; window.clearQ = clearQ; window.quick = quick; window.setDom = setDom;
+window.detaliuCaz = detaliuCaz; window.detaliuGrup = detaliuGrup; window.inchide = inchide;
