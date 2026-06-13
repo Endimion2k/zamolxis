@@ -23,7 +23,11 @@ DOMENII = {
     "consumatori": "Protecția consumatorilor", "bancar": "Clauze abuzive bancare",
     "mediu": "Mediu", "munca": "Litigii de muncă", "sanatate": "Sănătate / pacienți",
     "imobiliare": "Imobiliare / dezvoltatori", "fiscal": "Fiscal / taxe", "pensii": "Pensii",
-    "proprietati": "Restituiri proprietăți", "agricultura": "Agricultură", "alt": "Altele",
+    "proprietati": "Restituiri proprietăți", "agricultura": "Agricultură",
+    "asigurari": "Asigurări", "telecom": "Telecom / internet",
+    "recuperare": "Recuperare creanțe / IFN", "retail": "Retail / garanții produse",
+    "turism": "Turism / transport", "investitii": "Investiții / fraude",
+    "servicii": "Servicii cu abonament", "alt": "Altele",
 }
 NIVELURI = {"confirmat": "Confirmat", "revizuire": "De verificat"}
 

@@ -303,6 +303,61 @@ PARATI_MASA: list[ParatMasa] = [
     {"nume_oficial": "TAROM", "query": "TAROM", "variante": ["tarom"], "domeniu": "alt"},
     {"nume_oficial": "Blue Air", "query": "Blue Air", "variante": ["blue air"], "domeniu": "alt"},
     {"nume_oficial": "Ryanair", "query": "Ryanair", "variante": ["ryanair"], "domeniu": "alt"},
+    # --- asigurări (falimente RCA + asigurători activi + FGA) ---
+    {"nume_oficial": "City Insurance (în faliment)", "query": "city insurance",
+     "variante": ["city insurance", "asigurare reasigurare city insurance"], "domeniu": "asigurari"},
+    {"nume_oficial": "Euroins România (în faliment)", "query": "euroins",
+     "variante": ["euroins"], "domeniu": "asigurari"},
+    {"nume_oficial": "Astra Asigurări (în faliment)", "query": "astra asigurari",
+     "variante": ["astra asigurari", "asigurare reasigurare astra"], "domeniu": "asigurari"},
+    {"nume_oficial": "Fondul de Garantare a Asiguraților (FGA)", "query": "fondul de garantare a asigurat",
+     "variante": ["fondul de garantare a asiguratilor", "fga"], "domeniu": "asigurari"},
+    {"nume_oficial": "Allianz-Țiriac Asigurări", "query": "allianz", "variante": ["allianz tiriac", "allianz"], "domeniu": "asigurari"},
+    {"nume_oficial": "Omniasig VIG", "query": "omniasig", "variante": ["omniasig"], "domeniu": "asigurari"},
+    {"nume_oficial": "Groupama Asigurări", "query": "groupama", "variante": ["groupama"], "domeniu": "asigurari"},
+    {"nume_oficial": "Generali România", "query": "generali", "variante": ["generali"], "domeniu": "asigurari"},
+    {"nume_oficial": "Asirom VIG", "query": "asirom", "variante": ["asirom"], "domeniu": "asigurari"},
+    # --- recuperare creanțe / IFN ---
+    {"nume_oficial": "KRUK România", "query": "kruk", "variante": ["kruk romania", "kruk"], "domeniu": "recuperare"},
+    {"nume_oficial": "Investcapital (grup KRUK)", "query": "investcapital", "variante": ["investcapital"], "domeniu": "recuperare"},
+    {"nume_oficial": "Secapital (grup KRUK)", "query": "secapital", "variante": ["secapital"], "domeniu": "recuperare"},
+    {"nume_oficial": "Prosperocapital (grup KRUK)", "query": "prosperocapital", "variante": ["prospero capital", "prosperocapital"], "domeniu": "recuperare"},
+    {"nume_oficial": "EOS KSI România", "query": "eos ksi", "variante": ["eos ksi"], "domeniu": "recuperare"},
+    {"nume_oficial": "Kredyt Inkaso / Best Capital", "query": "kredyt inkaso", "variante": ["kredyt inkaso", "best capital"], "domeniu": "recuperare"},
+    {"nume_oficial": "APS (Asset Portfolio Servicing)", "query": "asset portfolio servicing", "variante": ["asset portfolio servicing", "aps recovery"], "domeniu": "recuperare"},
+    {"nume_oficial": "Coface România", "query": "coface", "variante": ["coface"], "domeniu": "recuperare"},
+    {"nume_oficial": "Provident Financial România IFN", "query": "provident", "variante": ["provident financial"], "domeniu": "recuperare"},
+    {"nume_oficial": "Credius IFN", "query": "credius", "variante": ["credius"], "domeniu": "recuperare"},
+    {"nume_oficial": "Viva Credit IFN", "query": "viva credit", "variante": ["viva credit"], "domeniu": "recuperare"},
+    {"nume_oficial": "Hora Credit IFN", "query": "hora credit", "variante": ["hora credit"], "domeniu": "recuperare"},
+    # --- telecom (semnal colectiv doar când e PÂRÂT) ---
+    {"nume_oficial": "Orange România", "query": "orange romania", "variante": ["orange romania"], "domeniu": "telecom"},
+    {"nume_oficial": "Vodafone România", "query": "vodafone romania", "variante": ["vodafone romania"], "domeniu": "telecom"},
+    {"nume_oficial": "Digi / RCS & RDS", "query": "rcs", "variante": ["rcs rds", "digi romania"], "domeniu": "telecom"},
+    {"nume_oficial": "Telekom România Mobile", "query": "telekom romania mobile", "variante": ["telekom romania mobile", "cosmote"], "domeniu": "telecom"},
+    # --- retail / garanții produse ---
+    {"nume_oficial": "eMAG (Dante International)", "query": "dante international", "variante": ["dante international"], "domeniu": "retail"},
+    {"nume_oficial": "Altex România", "query": "altex", "variante": ["altex"], "domeniu": "retail"},
+    {"nume_oficial": "Flanco Retail", "query": "flanco", "variante": ["flanco"], "domeniu": "retail"},
+    {"nume_oficial": "Dedeman", "query": "dedeman", "variante": ["dedeman"], "domeniu": "retail"},
+    # --- turism / transport ---
+    {"nume_oficial": "Omnia Turism", "query": "omnia turism", "variante": ["omnia turism"], "domeniu": "turism"},
+    {"nume_oficial": "Genius Travel", "query": "genius travel", "variante": ["genius travel"], "domeniu": "turism"},
+    {"nume_oficial": "Christian Tour", "query": "christian tour", "variante": ["christian tour"], "domeniu": "turism"},
+    {"nume_oficial": "Paralela 45", "query": "paralela 45", "variante": ["paralela 45"], "domeniu": "turism"},
+    {"nume_oficial": "CFR Călători", "query": "cfr calatori", "variante": ["cfr calatori"], "domeniu": "turism"},
+    # --- investiții / fraude ---
+    {"nume_oficial": "AAAS (fosta AVAS) — investitori FNI", "query": "autoritatea pentru administrarea activelor statului",
+     "variante": ["autoritatea pentru administrarea activelor statului", "aaas", "avas"], "domeniu": "investitii"},
+    {"nume_oficial": "SOV Invest / FNI", "query": "sov invest", "variante": ["sov invest", "fondul national de investitii"], "domeniu": "investitii"},
+    # --- servicii cu abonament (fitness / educație privată / clinici) ---
+    {"nume_oficial": "World Class România", "query": "world class", "variante": ["world class", "vectr fitness"], "domeniu": "servicii"},
+    {"nume_oficial": "Univ. Spiru Haret (Fundația România de Mâine)", "query": "spiru haret", "variante": ["spiru haret", "fundatia romania de maine"], "domeniu": "servicii"},
+    {"nume_oficial": "Univ. Dimitrie Cantemir", "query": "dimitrie cantemir", "variante": ["dimitrie cantemir"], "domeniu": "servicii"},
+    {"nume_oficial": "Univ. Vasile Goldiș Arad", "query": "vasile goldis", "variante": ["vasile goldis"], "domeniu": "servicii"},
+    {"nume_oficial": "MedLife", "query": "medlife", "variante": ["medlife"], "domeniu": "servicii"},
+    {"nume_oficial": "Regina Maria (Centrul Medical Unirea)", "query": "centrul medical unirea", "variante": ["centrul medical unirea", "regina maria"], "domeniu": "servicii"},
+    {"nume_oficial": "Medicover", "query": "medicover", "variante": ["medicover"], "domeniu": "servicii"},
 ]
 
 
@@ -390,15 +445,67 @@ def query_names(domenii: tuple[str, ...] | None = None) -> list[str]:
     return [a["query"] for a in ASOCIATII if domenii is None or a["domeniu"] in domenii]
 
 
+# Catalog EXTINS de tipuri de obiect pentru descoperire, pe domenii suplimentare
+# (asigurări, telecom, recuperare creanțe, retail, turism, investiții, servicii...).
+# Completat din workflow `extindere-domenii-zamolxis`. {query, label, domeniu}.
+OBIECTE_DESCOPERIRE: list[dict] = [
+    # asigurări (falimente RCA: City Insurance, Euroins, Astra + FGA)
+    {"query": "contestatie decizie respingere cerere de plata fond garantare", "label": "Contestație decizie FGA de respingere a plății", "domeniu": "asigurari"},
+    {"query": "contestatie decizie fond de garantare a asiguratilor", "label": "Contestație decizie FGA (L.213/2015)", "domeniu": "asigurari"},
+    {"query": "contestatie tabel creante asigurator faliment", "label": "Contestație tabel creanțe (faliment asigurător)", "domeniu": "asigurari"},
+    {"query": "pretentii despagubiri rca asigurator faliment", "label": "Despăgubiri RCA de la asigurător în faliment", "domeniu": "asigurari"},
+    {"query": "pretentii asigurare casco daune", "label": "Despăgubire CASCO / daune", "domeniu": "asigurari"},
+    {"query": "restituire prima de asigurare reziduala faliment asigurator", "label": "Restituire primă reziduală (poliță încetată la faliment)", "domeniu": "asigurari"},
+    # recuperare creanțe / IFN
+    {"query": "constatare nulitate clauze abuzive", "label": "Clauze abuzive credit de consum", "domeniu": "recuperare"},
+    {"query": "contestatie la poprire", "label": "Contestație la poprire (recuperator)", "domeniu": "recuperare"},
+    # telecom
+    {"query": "rezolutiune contract", "label": "Reziliere/rezoluțiune abonament telecom", "domeniu": "telecom"},
+    {"query": "drepturi consumatori", "label": "Litigiu protecția consumatorilor vs. operator", "domeniu": "telecom"},
+    # retail / garanții
+    {"query": "rezolutiune contract vanzare cumparare bun mobil", "label": "Rezoluțiune vânzare bun cu defect", "domeniu": "retail"},
+    {"query": "obligatia de a face inlocuire produs neconform garantie", "label": "Înlocuire/reparare produs în garanție (OUG 140/2021)", "domeniu": "retail"},
+    {"query": "actiune in raspundere pentru vicii ascunse bun vandut", "label": "Vicii ascunse ale bunului vândut", "domeniu": "retail"},
+    {"query": "rezolutiune contract restituire pret produs defect", "label": "Rezoluțiune + restituire preț produs defect", "domeniu": "retail"},
+    # turism / transport pasageri
+    {"query": "pretentii pachet turistic", "label": "Preț pachet turistic neonorat", "domeniu": "turism"},
+    {"query": "restituire pret pachet servicii turistice", "label": "Restituire preț pachet turistic", "domeniu": "turism"},
+    {"query": "rezolutiune contract servicii turistice", "label": "Rezoluțiune contract servicii turistice", "domeniu": "turism"},
+    {"query": "despagubiri pachet turistic neexecutat", "label": "Despăgubiri pachet turistic neexecutat", "domeniu": "turism"},
+    {"query": "compensatie pasageri zbor intarziat anulat", "label": "Compensație pasageri aerieni (Reg. 261/2004)", "domeniu": "turism"},
+    {"query": "restituire contravaloare bilet avion", "label": "Restituire contravaloare bilet avion", "domeniu": "turism"},
+    {"query": "despagubiri intarziere tren restituire bilet", "label": "Despăgubiri întârziere tren / bilet feroviar", "domeniu": "turism"},
+    # imobiliare extins
+    {"query": "rezolutiune antecontract de vanzare cumparare", "label": "Rezoluțiune antecontract + restituire avans", "domeniu": "imobiliare"},
+    {"query": "obligatia de a incheia contractul de vanzare in forma autentica", "label": "Obligare la actul autentic (refuz dezvoltator)", "domeniu": "imobiliare"},
+    {"query": "penalitati de intarziere predare imobil", "label": "Penalități întârziere predare apartament", "domeniu": "imobiliare"},
+    {"query": "restituire avans antecontract", "label": "Restituire avans antecontract apartament", "domeniu": "imobiliare"},
+    # investiții / fraude
+    {"query": "imbogatire fara justa cauza", "label": "Îmbogățire fără justă cauză (restituire sume)", "domeniu": "investitii"},
+    {"query": "despagubiri investitori fni", "label": "Despăgubiri investitori FNI (vs. stat/AAAS)", "domeniu": "investitii"},
+    # servicii cu abonament (fitness, educație privată, clinici)
+    {"query": "actiune in constatare clauze abuzive abonament", "label": "Clauze abuzive în contract de abonament", "domeniu": "servicii"},
+    {"query": "reziliere contract prestari servicii restituire taxa", "label": "Reziliere abonament + restituire taxă", "domeniu": "servicii"},
+    {"query": "restituire taxa de scolarizare", "label": "Restituire taxă școlarizare (educație privată)", "domeniu": "servicii"},
+    {"query": "pretentii penalitati reziliere anticipata abonament", "label": "Penalități reziliere anticipată abonament", "domeniu": "servicii"},
+]
+
+
 def obiecte_descoperire(domenii: tuple[str, ...] | None = None) -> list[dict]:
-    """Tipurile de obiect folosite pentru DESCOPERIREA automată de pârâți de masă.
-    Derivate din BUCKETE_OBIECT: prima cheie = interogarea pe obiect, label = eticheta.
-    Sărim peste bucket-uri prea generice (fără domeniu propriu, ex. insolvență)."""
-    out = []
-    for b in BUCKETE_OBIECT:
-        if not b["domeniu"] or not b["chei"]:
+    """Tipurile de obiect folosite pentru DESCOPERIREA automată de pârâți de masă:
+    cele derivate din BUCKETE_OBIECT + catalogul extins OBIECTE_DESCOPERIRE.
+    Dedup pe (query, domeniu); filtru opțional pe domenii."""
+    out, vazute = [], set()
+    surse = [
+        {"query": b["chei"][0], "label": b["label"], "domeniu": b["domeniu"]}
+        for b in BUCKETE_OBIECT if b["domeniu"] and b["chei"]
+    ] + OBIECTE_DESCOPERIRE
+    for o in surse:
+        if domenii is not None and o["domeniu"] not in domenii:
             continue
-        if domenii is not None and b["domeniu"] not in domenii:
+        cheie = (o["query"], o["domeniu"])
+        if cheie in vazute:
             continue
-        out.append({"query": b["chei"][0], "label": b["label"], "domeniu": b["domeniu"]})
+        vazute.add(cheie)
+        out.append(o)
     return out

@@ -83,10 +83,12 @@ că „nu e singur" — chiar dacă procedural fiecare are dosar separat.
 .\.venv\Scripts\python.exe scripts\run_cluster_scan.py --domenii pensii,fiscal --since 2024-01-01
 ```
 
-Registrul de pârâți de masă (≈40 instituții: Case de Pensii, ANAF/Finanțe, inspectorate
-școlare, spitale, primării, CNAS, ANRP, APIA, bănci CHF, companii aeriene, Nordis) e în
-[app/registry.py](app/registry.py). Utilitățile de energie sunt excluse intenționat
-(acolo furnizorul e reclamant, nu pârât).
+Registrul de pârâți de masă (≈80 instituții/firme pe 16 domenii: Case de Pensii,
+ANAF/Finanțe, inspectorate, spitale, primării, CNAS, ANRP, APIA, bănci CHF, Nordis și alți
+dezvoltatori, **asigurători în faliment — City Insurance, Euroins, Astra, FGA**, **recuperatori
+de creanțe — KRUK, EOS, Kredyt Inkaso**, telecom, retail/eMAG, agenții de turism, fitness și
+universități private...) e în [app/registry.py](app/registry.py). Utilitățile de energie sunt
+excluse intenționat (acolo furnizorul e reclamant, nu pârât).
 
 ## Descoperire automată de pârâți noi (Faza 8)
 

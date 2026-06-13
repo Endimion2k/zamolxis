@@ -45,6 +45,13 @@ DOMENII_AFISARE = {
     "pensii": "Pensii",
     "proprietati": "Restituiri proprietăți",
     "agricultura": "Agricultură (subvenții)",
+    "asigurari": "Asigurări",
+    "telecom": "Telecom / internet",
+    "recuperare": "Recuperare creanțe / IFN",
+    "retail": "Retail / garanții produse",
+    "turism": "Turism / transport",
+    "investitii": "Investiții / fraude",
+    "servicii": "Servicii cu abonament",
     "alt": "Alte interese colective",
 }
 NIVEL_AFISARE = {

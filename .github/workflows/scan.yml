@@ -25,8 +25,8 @@ jobs:
         continue-on-error: true
         run: |
           python scripts/run_scanner.py --throttle 0.5
-          python scripts/discover_waves.py --domenii imobiliare --since 2022-01-01 --prag 25 --throttle 0.4
-          python scripts/run_cluster_scan.py --domenii pensii,fiscal --since 2024-01-01 --prag 30 --throttle 0.4
+          python scripts/run_cluster_scan.py --domenii pensii,fiscal,asigurari,recuperare,sanatate --since 2020-01-01 --prag 30 --throttle 0.4
+          python scripts/discover_waves.py --domenii imobiliare,turism,retail,telecom,servicii,investitii --since 2022-01-01 --prag 25 --throttle 0.4
 
       - name: Construiește data.json
         run: python scripts/build_static.py --data "$(date -I)"
