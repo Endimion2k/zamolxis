@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zamolxis — Legea celor mulți</title>
+  <meta name="description" content="Zamolxis scoate la lumină acțiunile colective și valurile de litigii din România, ca orice persoană păgubită să-și găsească dreptatea — împreună cu ceilalți.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <svg width="46" height="46" viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="50" cy="50" r="46" fill="none" stroke="#b8860b" stroke-width="3"/>
+          <circle cx="50" cy="50" r="15" fill="#b8860b"/>
+          <g fill="#b8860b">
+            <polygon points="50,6 46,22 54,22"/><polygon points="50,6 46,22 54,22" transform="rotate(30 50 50)"/>
+            <polygon points="50,6 46,22 54,22" transform="rotate(60 50 50)"/><polygon points="50,6 46,22 54,22" transform="rotate(90 50 50)"/>
+            <polygon points="50,6 46,22 54,22" transform="rotate(120 50 50)"/><polygon points="50,6 46,22 54,22" transform="rotate(150 50 50)"/>
+            <polygon points="50,6 46,22 54,22" transform="rotate(180 50 50)"/><polygon points="50,6 46,22 54,22" transform="rotate(210 50 50)"/>
+            <polygon points="50,6 46,22 54,22" transform="rotate(240 50 50)"/><polygon points="50,6 46,22 54,22" transform="rotate(270 50 50)"/>
+            <polygon points="50,6 46,22 54,22" transform="rotate(300 50 50)"/><polygon points="50,6 46,22 54,22" transform="rotate(330 50 50)"/>
+          </g>
+          <circle cx="50" cy="50" r="27" fill="none" stroke="#b8860b" stroke-width="1.5" opacity="0.6"/>
+        </svg>
+        <div>
+          <h1>ZAMOLXIS</h1>
+          <p class="tag">Legea celor mulți</p>
+          <p class="sub">Scoatem la lumină procesele colective și valurile de litigii din România,
+            ca orice persoană păgubită să-și găsească dreptatea — împreună cu ceilalți.</p>
+        </div>
+      </div>
+      <nav>
+        <button data-tab="colective" class="activ">Acțiuni colective</button>
+        <button data-tab="valuri">Valuri de procese identice</button>
+        <button data-tab="despre">Despre</button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="disclaimer">
+    ⚠️ Informație orientativă, generată automat din datele publice ale instanțelor.
+    <b>Nu este consultanță juridică.</b> Verificați la sursa oficială
+    <a href="https://portal.just.ro" target="_blank" rel="noopener">portal.just.ro</a>.
+    Persoanele fizice sunt anonimizate.
+  </div>
+
+  <main class="wrap" id="main">
+    <div class="card"><p class="muted">Se încarcă datele…</p></div>
+  </main>
+
+  <footer>
+    <b>Zamolxis</b> — „Legea celor mulți". Date din web service-ul public portal.just.ro ·
+    Actualizat: <span id="generat">—</span> · <a href="https://github.com/Endimion2k/zamolxis" target="_blank" rel="noopener">cod open-source</a>
+  </footer>
+
+  <div id="detaliu"></div>
+  <script src="app.js"></script>
+</body>
+</html>

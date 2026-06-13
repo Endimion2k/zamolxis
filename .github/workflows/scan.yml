@@ -1,0 +1,43 @@
+name: Scanare săptămânală (reîmprospătează datele)
+
+# Rulează scanerele pe runner-ul GitHub (acces liber la portal.just.ro),
+# regenerează web/data.json și îl comite. Push-ul declanșează deploy-ul (pages.yml).
+on:
+  schedule:
+    - cron: "0 3 * * 1"   # luni, 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+
+      - name: Scanare (best-effort, nu oprește deploy-ul la eroare parțială)
+        continue-on-error: true
+        run: |
+          python scripts/run_scanner.py --throttle 0.5
+          python scripts/discover_waves.py --domenii imobiliare --since 2022-01-01 --prag 25 --throttle 0.4
+          python scripts/run_cluster_scan.py --domenii pensii,fiscal --since 2024-01-01 --prag 30 --throttle 0.4
+
+      - name: Construiește data.json
+        run: python scripts/build_static.py --data "$(date -I)"
+
+      - name: Comite dacă datele sunt valide (nu suprascriem cu gol)
+        run: |
+          CAZURI=$(python -c "import json;print(len(json.load(open('web/data.json',encoding='utf-8'))['cazuri']))")
+          echo "cazuri în export: $CAZURI"
+          if [ "$CAZURI" -lt 50 ]; then echo "Prea puține date — nu comit."; exit 0; fi
+          git config user.name "Zamolxis Bot"
+          git config user.email "zamolxis@users.noreply.github.com"
+          git add web/data.json
+          if git diff --cached --quiet; then echo "Nicio schimbare."; else \
+            git commit -m "Reîmprospătare date $(date -I)"; git push; fi
