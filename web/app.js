@@ -166,18 +166,27 @@ function quick(q) { const e = document.getElementById("q"); e.value = q; render(
 // ---- despre ----
 function renderDespre() {
   main().innerHTML = `
-    <div class="card"><h2 style="margin-top:0">De ce „Zamolxis"</h2>
-      <p>Zamolxis era, în tradiția daco-getică, divinitatea legii și a dreptății — cel care aduna oamenii
-        și le dădea legile. Platforma face același lucru: <b>strânge laolaltă oamenii păgubiți</b> și le arată
-        unde stă dreptatea, în datele publice ale instanțelor.</p></div>
+    <div class="card"><h2 style="margin-top:0">Nu ești singur</h2>
+      <p>Când cineva e păgubit — de o bancă, o instituție, un dezvoltator, un asigurător — de obicei crede că e
+        singur în fața unui adversar mare. De cele mai multe ori nu e: alte mii de oameni au exact aceeași
+        problemă, fiecare cu dosarul lui. <b>Păgubiți.ro îi strânge laolaltă</b> și le arată unde stă dreptatea,
+        în datele publice ale instanțelor.</p></div>
     <div class="card"><h2 style="margin-top:0">Ce găsești aici</h2>
-      <p><b>Acțiuni colective</b> — procese pornite de asociații/ONG-uri pentru un grup.</p>
+      <p><b>Acțiuni colective</b> — procese pornite de asociații sau ONG-uri în numele unui grup
+        (consumatori, clauze abuzive bancare, mediu).</p>
       <p><b>Valuri de procese identice</b> — mii de dosare individuale separate cu aceeași problemă împotriva
-        aceleiași instituții/firme (pensii, asigurări, taxe, apartamente nelivrate ca la Nordis).</p></div>
+        aceleiași instituții sau firme: recalculări de pensii, despăgubiri de la asigurători în faliment, taxe,
+        apartamente nelivrate (ca la Nordis). Le grupăm ca să vezi că nu ești singur.</p></div>
+    <div class="card"><h2 style="margin-top:0">Cum funcționează</h2>
+      <p class="muted">Un program scanează automat web service-ul public al instanțelor (portal.just.ro),
+        clasifică dosarele după semnale obiective (cine sunt părțile, ce cer, câți sunt) și descoperă singur
+        firmele/instituțiile acționate în masă. Totul e determinist și verificabil; fiecare clasificare vine
+        cu motivele ei.</p></div>
     <div class="card" style="background:#fbf3df;border-color:#e9d6a3"><p style="margin:0;color:#6b521a">
       <b>Important.</b> Informație orientativă, <b>nu</b> consultanță juridică. Clasificarea automată poate greși
       („de verificat"). Consultă un avocat și verifică la
-      <a href="https://portal.just.ro" target="_blank" rel="noopener">portal.just.ro</a>.</p></div>`;
+      <a href="https://portal.just.ro" target="_blank" rel="noopener">portal.just.ro</a>.
+      Persoanele fizice sunt afișate anonimizat.</p></div>`;
 }
 
 // ---- modal detaliu (focus + Escape) ----

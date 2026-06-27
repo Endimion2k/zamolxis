@@ -1,10 +1,11 @@
-# ⚖️ Zamolxis — Legea celor mulți
+# ⚖️ Păgubiți.ro — Nu ești singur
 
-> Zamolxis era, în tradiția daco-getică, divinitatea legii și a dreptății — cel care
-> aduna oamenii și le dădea legile. Platforma face același lucru: **strânge laolaltă
-> oamenii păgubiți** și le arată unde stă dreptatea, în datele publice ale instanțelor.
+> Când cineva e păgubit — de o bancă, o instituție, un dezvoltator, un asigurător — crede
+> de obicei că e singur. De cele mai multe ori nu e: alte mii de oameni au exact aceeași
+> problemă. **Păgubiți.ro îi strânge laolaltă** și le arată unde stă dreptatea, în datele
+> publice ale instanțelor.
 
-Zamolxis scanează dosarele aflate pe rol în România (via web service-ul public
+Păgubiți.ro scanează dosarele aflate pe rol în România (via web service-ul public
 portal.just.ro) și scoate la lumină:
 - **Acțiuni colective** — procese pornite de asociații/ONG-uri pentru un grup
   (consumatori, clauze abuzive bancare, mediu);
