@@ -1,237 +1,264 @@
 "use strict";
-let DATA = null, tab = "colective", fdom = "";
-let lastFocus = null;
+/* Păgubiți.ro — căutare locală peste data.json, liste de valuri și acțiuni colective. */
 
-const esc = (s) => (s == null ? "" : String(s).replace(/[&<>"]/g, c =>
-  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])));
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => (s == null ? "" : String(s).replace(/[&<>"']/g, c =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])));
 const norm = (s) => (s || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
-const main = () => document.getElementById("main");
-const qval = () => document.getElementById("q").value.trim();
-const domLabel = (c) => (DATA.domenii && DATA.domenii[c]) || c || "—";
-const nivLabel = (c) => (DATA.niveluri && DATA.niveluri[c]) || c;
+const fmt = (n) => Number(n).toLocaleString("ro-RO");
+// „21 de dosare”, „5 dosare”, „1 dosar”
+const nr = (n, sing, plur) => n === 1 ? `un ${sing}` :
+  `${fmt(n)} ${(n % 100 === 0 || n % 100 >= 20) && n >= 20 ? "de " : ""}${plur}`;
+const LUNI = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august",
+  "septembrie", "octombrie", "noiembrie", "decembrie"];
+const data = (iso) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || "");
+  return m ? `${+m[3]} ${LUNI[+m[2] - 1]} ${m[1]}` : "";
+};
 
-// ---- boot ----
-fetch("data.json").then(r => r.json()).then(d => {
-  DATA = d;
-  document.getElementById("generat").textContent = d.generat_la || "—";
-  const q = document.getElementById("q");
-  q.addEventListener("input", render);
-  document.getElementById("q-btn").addEventListener("click", () => { render(); q.focus(); });
-  document.querySelectorAll(".tabs button").forEach(b =>
-    b.addEventListener("click", () => { tab = b.dataset.tab; fdom = ""; setTabs(); render(); }));
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") inchide(); });
-  render();
-}).catch(e => { main().innerHTML = `<div class="gol">Nu am putut încărca datele (${esc(e.message)}).</div>`; });
-
-function setTabs() {
-  document.querySelectorAll(".tabs button").forEach(b =>
-    b.setAttribute("aria-current", String(b.dataset.tab === tab)));
+// Cedila → virgulă (Ş Ţ → Ș Ț) și majuscule → formă de titlu, păstrând SA/SRL/IFN.
+const MICI = new Set(["de", "a", "al", "si", "și", "din", "pentru", "la", "in", "în", "pe", "cu"]);
+const SIGLE = new Set(["SA", "SRL", "IFN", "SARL", "SCA", "SPRL", "ANAF", "CNAS", "CEC", "BRD", "ING", "OTP", "EOS", "KSI", "UAT", "SPEEH", "CNPP", "AJFP", "DGRFP", "DGAMC", "ANPC", "ONG"]);
+const virgula = (s) => (s || "").replace(/ş/g, "ș").replace(/Ş/g, "Ș").replace(/ţ/g, "ț").replace(/Ţ/g, "Ț");
+function titlu(s) {
+  s = virgula(s).trim();
+  return s.split(/(\s+|-)/).map((w, i) => {
+    if (/^\s+$|^-$/.test(w) || !w) return w;
+    const bare = w.replace(/[^\p{L}]/gu, "");
+    if (SIGLE.has(bare) || bare.length < 2 || bare !== bare.toLocaleUpperCase("ro")) return w;
+    const lo = w.toLocaleLowerCase("ro");
+    if (i > 0 && MICI.has(lo)) return lo;
+    return lo.charAt(0).toLocaleUpperCase("ro") + lo.slice(1);
+  }).join("");
+}
+// „CurteadeApelPITESTI” → „Curtea de Apel Pitesti”
+function instanta(s) {
+  if (!s) return "";
+  const m = /^(CurteadeApel|TribunalulSpecializat|TribunalulpentruMinori\w*|Tribunalul|Judecatoria|InaltaCurte\w*)(.*)$/.exec(s);
+  if (!m) return titlu(s);
+  const pref = { CurteadeApel: "Curtea de Apel", TribunalulSpecializat: "Tribunalul Specializat",
+    Tribunalul: "Tribunalul", Judecatoria: "Judecătoria" }[m[1]] || m[1].replace(/([a-z])([A-Z])/g, "$1 $2");
+  return `${pref} ${titlu(m[2].replace(/([a-z])([A-Z])/g, "$1 $2"))}`.trim();
 }
 
-function matches(it, q, campuri) {
-  const nq = norm(q);
-  return !nq || norm(campuri.map(c => it[c]).join(" ")).includes(nq);
+// Numele scrise integral cu majuscule din rezumate devin formă de titlu.
+const rezumat = (t) => virgula(t).replace(/[\p{Lu}][\p{Lu}\d.&]*(?:[\s-]+[\p{Lu}\d.&]+)+|[\p{Lu}]{4,}/gu, (m) => titlu(m));
+
+let D = null;
+const stare = { valDom: "", valToate: false, colDom: "", colToate: false };
+const domeniu = (c) => (D.domenii && D.domenii[c]) || "Altele";
+
+// ---------- pornire ----------
+fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
+  D = d;
+  D.grupuri.forEach((g, i) => { g._i = i; g._cauta = norm(`${g.parat} ${g.obiect_tip} ${domeniu(g.domeniu)}`); });
+  D.cazuri.forEach((c, i) => {
+    c._i = i;
+    c._cauta = norm(`${c.numar} ${c.obiect} ${c.rezumat} ${c.instanta} ${(c.parti || []).map(p => p.nume).join(" ")}`);
+  });
+  cifre();
+  reel();
+  pictaValuri();
+  pictaColective();
+  const q = new URLSearchParams(location.search).get("q") || decodeURIComponent((location.hash.match(/^#q=(.+)/) || [])[1] || "");
+  if (q) { $("#q").value = q; cauta(q, false); }
+}).catch(() => {
+  ["#val-lista", "#col-lista"].forEach(s => { $(s).innerHTML = `<li class="empty">Datele nu s-au putut încărca. Reîncarcă pagina.</li>`; });
+});
+
+// ---------- cifrele din propoziție ----------
+function cifre() {
+  const dosare = D.grupuri.reduce((s, g) => s + (g.nr_dosare || 0), 0);
+  const conf = (D.stats && D.stats.confirmate) || 0;
+  $("#cifre").innerHTML = `Am găsit <b>${nr(D.grupuri.length, "val", "valuri")}</b> de procese identice, cu ` +
+    `<b>${nr(dosare, "dosar", "dosare")}</b> deschise separat de oameni cu aceeași problemă. ` +
+    `Și <b>${nr(D.cazuri.length, "acțiune colectivă", "acțiuni colective")}</b>${conf ? `, dintre care <b>${fmt(conf)} confirmate</b>` : ""}.`;
+  if (D.generat_la) {
+    const t = $("#generat"); t.dateTime = D.generat_la; t.textContent = data(D.generat_la);
+  }
 }
 
-function render() {
-  const q = qval();
-  if (q) return renderCautare(q);
-  if (tab === "despre") return renderDespre();
-  if (tab === "valuri") return renderValuri();
-  return renderColective();
+// ---------- filmul de instanțe din primul ecran ----------
+function dosareLa(oras) {
+  let n = 0;
+  D.grupuri.forEach(g => Object.entries(g.instante || {}).forEach(([k, v]) => { if (k.toUpperCase().includes(oras)) n += v; }));
+  return n;
+}
+function reel() {
+  const items = [...document.querySelectorAll(".reel-item")];
+  const cap = $(".reel-cap");
+  const NUME = { VALCEA: "Tribunalul Vâlcea", CLUJ: "Tribunalul Cluj", IASI: "Palatul de Justiție, Iași", BUCURESTI: "Palatul de Justiție, București" };
+  const LOC = { VALCEA: "Vâlcea", CLUJ: "Cluj", IASI: "Iași", BUCURESTI: "București" };
+  const text = items.map(it => {
+    const o = it.dataset.oras, n = dosareLa(o);
+    return n ? `${NUME[o]}. ${nr(n, "dosar", "dosare")} din valurile de procese sunt la instanțele din ${LOC[o]}.` : `${NUME[o]}.`;
+  });
+  let k = 0;
+  const arata = (i) => {
+    items.forEach((it, j) => it.classList.toggle("on", j === i));
+    cap.textContent = text[i];
+  };
+  arata(0);
+  const valcea = dosareLa("VALCEA");
+  if (valcea) $("#val-photo-cap").textContent = `Tribunalul Vâlcea. ${nr(valcea, "dosar", "dosare")} din valurile de mai jos trec prin instanțele din Vâlcea.`;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let pauza = false;
+  const fig = $(".reel");
+  fig.addEventListener("mouseenter", () => { pauza = true; });
+  fig.addEventListener("mouseleave", () => { pauza = false; });
+  setInterval(() => { if (!pauza && !document.hidden) { k = (k + 1) % items.length; arata(k); } }, 5000);
 }
 
-// ---- căutare globală (peste ambele seturi) ----
-function renderCautare(q) {
-  const caz = (DATA.cazuri || []).filter(c => matches(c, q, ["numar", "obiect", "rezumat", "instanta"]))
-    .sort((a, b) => b.scor - a.scor);
-  const grp = (DATA.grupuri || []).filter(g => matches(g, q, ["parat", "obiect_tip"]))
-    .sort((a, b) => b.nr_dosare - a.nr_dosare);
-  let html = `<p class="muted" style="margin:6px 4px 14px">Rezultate pentru „<b>${esc(q)}</b>" —
-    ${caz.length} acțiuni colective, ${grp.length} valuri de procese.
-    <button onclick="clearQ()" style="background:none;border:0;color:var(--accent);cursor:pointer;font:inherit;text-decoration:underline">renunță</button></p>`;
-  if (!caz.length && !grp.length)
-    html += `<div class="gol">Niciun rezultat pentru „${esc(q)}". Încearcă alt cuvânt — o firmă, o instituție sau o problemă.</div>`;
-  if (caz.length) html += `<div class="sectiune-titlu">⚖️ Acțiuni colective (${caz.length})</div>` + listaCazuri(caz);
-  if (grp.length) html += `<div class="sectiune-titlu">🌊 Valuri de procese identice (${grp.length})</div>` + listaGrupuri(grp);
-  main().innerHTML = html;
-}
-function clearQ() { document.getElementById("q").value = ""; render(); }
-
-// ---- tab: acțiuni colective ----
-function renderColective() {
-  const total = (DATA.cazuri || []).length;
-  main().innerHTML = `
-    <div class="lead">
-      <h2>Ești posibil păgubit? Verifică.</h2>
-      <p>Caută mai sus o firmă, o instituție sau problema ta — vezi dacă există deja un proces la care te poți raporta.</p>
-      <div class="chips">
-        ${["bancă", "pensii", "asigurări", "Nordis", "mediu", "telefonie"].map(c =>
-          `<button onclick="quick('${c}')">${c}</button>`).join("")}
-      </div>
-    </div>
-    <div class="statbar">
-      <span><b>${total}</b> acțiuni colective</span>
-      <span><b>${(DATA.stats && DATA.stats.confirmate) || 0}</b> confirmate</span>
-      <span><b>${(DATA.grupuri || []).length}</b> valuri de procese</span>
-    </div>
-    ${pastileDomenii()}
-    ${filtruDomeniu(DATA.cazuri, "acțiunile colective")}
-    <div id="lst"></div>`;
-  pictaCazuri();
-}
-
-// pastile cu numărul de valuri per domeniu — clic = navighează direct la acel domeniu
-function pastileDomenii() {
+// ---------- filtre ----------
+function filtre(el, items, activ, onPick, scop) {
   const c = {};
-  (DATA.grupuri || []).forEach(g => { if (g.domeniu) c[g.domeniu] = (c[g.domeniu] || 0) + 1; });
-  const items = Object.entries(c).sort((a, b) => b[1] - a[1]);
-  if (!items.length) return "";
-  return `<div class="card">
-    <div class="sectiune-titlu" style="margin-top:0">🌊 Valuri pe domenii — navighează direct</div>
-    <div class="dompastile">${items.map(([d, n]) =>
-      `<button onclick="mergiLaDomeniu('${d}')" aria-label="${esc(domLabel(d))}, ${n} valuri">
-        <span>${esc(domLabel(d))}</span><b>${n}</b></button>`).join("")}</div></div>`;
-}
-function mergiLaDomeniu(d) {
-  document.getElementById("q").value = "";
-  tab = "valuri"; fdom = d; setTabs(); render(); window.scrollTo(0, 0);
-}
-function pictaCazuri() {
-  const rows = (DATA.cazuri || []).filter(c => !fdom || c.domeniu === fdom).sort((a, b) => b.scor - a.scor);
-  document.getElementById("lst").innerHTML = rows.length
-    ? listaCazuri(rows) + `<p class="muted" style="margin-top:10px">${rows.length} rezultate.</p>`
-    : `<div class="gol">Niciun rezultat pentru filtrul ales.</div>`;
+  items.forEach(i => { const d = i.domeniu || "alt"; c[d] = (c[d] || 0) + 1; });
+  const lista = Object.entries(c).sort((a, b) => b[1] - a[1]);
+  el.innerHTML = [["", items.length], ...lista].map(([d, n]) =>
+    `<button type="button" data-d="${esc(d)}" aria-pressed="${d === activ}">${d ? esc(domeniu(d)) : `Toate ${scop}`} <span>${fmt(n)}</span></button>`).join("");
+  el.onclick = (e) => { const b = e.target.closest("button"); if (b) onPick(b.dataset.d); };
 }
 
-// ---- tab: valuri ----
-function renderValuri() {
-  main().innerHTML = `
-    <div class="lead">
-      <h2>Valuri de procese identice</h2>
-      <p>Mii de oameni dau în judecată separat aceeași instituție sau firmă pentru aceeași problemă. Vezi dacă <b>ai și tu același caz</b>.</p>
+// ---------- valuri ----------
+function rowVal(g) {
+  return `<li class="row">
+    <button class="row-btn" type="button" aria-expanded="false" aria-controls="v${g._i}">
+      <span class="row-n">${g.aprox ? "≥" : ""}${fmt(g.nr_dosare)}</span>
+      <span><span class="row-t">${esc(g.obiect_tip)}</span><span class="row-s">împotriva ${esc(titlu(g.parat))}</span></span>
+      <span class="row-d">${esc(domeniu(g.domeniu))}<span class="row-plus" aria-hidden="true"></span></span>
+    </button>
+    <div class="row-panel" id="v${g._i}" hidden></div>
+  </li>`;
+}
+function panouVal(g) {
+  const inst = Object.entries(g.instante || {}).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const per = g.prima_data ? `între ${data(g.prima_data)} și ${data(g.ultima_data)}` : "";
+  return `<p>${g.aprox ? "Cel puțin " : ""}${nr(g.nr_dosare, "dosar", "dosare")} de tip „${esc(g.obiect_tip)}” împotriva ${esc(titlu(g.parat))}${per ? `, înregistrate ${per}` : ""}. Dacă ai și tu un astfel de proces, nu ești singur.</p>
+    <div class="panel-cols">
+      ${inst.length ? `<div><h4>Pe instanțe</h4><ul>${inst.map(([k, v]) => `<li><span>${esc(instanta(k))}</span><span>${fmt(v)}</span></li>`).join("")}</ul></div>` : ""}
+      ${(g.exemple || []).length ? `<div><h4>Exemple de dosare</h4><ul>${g.exemple.map(e => `<li><span>${esc(e.numar)}</span><span>${esc(instanta(e.instanta))}</span></li>`).join("")}</ul></div>` : ""}
     </div>
-    ${filtruDomeniu(DATA.grupuri, "valurile")}
-    <div id="lst"></div>`;
-  pictaGrupuri();
+    <a class="out" href="https://portal.just.ro">Caută aceste dosare pe portal.just.ro</a>`;
 }
-function pictaGrupuri() {
-  const rows = (DATA.grupuri || []).filter(g => !fdom || g.domeniu === fdom).sort((a, b) => b.nr_dosare - a.nr_dosare);
-  document.getElementById("lst").innerHTML = rows.length
-    ? listaGrupuri(rows) + `<p class="muted" style="margin-top:10px">${rows.length} valuri.</p>`
-    : `<div class="gol">Niciun val pentru filtrul ales.</div>`;
+function leaga(lista) {
+  lista.onclick = (e) => {
+    const cm = e.target.closest(".case-more");
+    if (cm) {
+      const open = cm.getAttribute("aria-expanded") !== "true";
+      cm.setAttribute("aria-expanded", String(open));
+      document.getElementById(cm.getAttribute("aria-controls")).hidden = !open;
+      return;
+    }
+    const b = e.target.closest(".row-btn"); if (!b) return;
+    const p = document.getElementById(b.getAttribute("aria-controls"));
+    const open = b.getAttribute("aria-expanded") !== "true";
+    if (open && !p.innerHTML) p.innerHTML = panouVal(D.grupuri[+p.id.slice(1)]);
+    b.setAttribute("aria-expanded", String(open));
+    p.hidden = !open;
+  };
 }
-
-// ---- liste de carduri ----
-function listaCazuri(rows) {
-  return `<div class="lista">` + rows.slice(0, 300).map(c => {
-    const i = DATA.cazuri.indexOf(c);
-    return `<button class="rezultat" onclick="detaliuCaz(${i})" aria-label="Detalii dosar ${esc(c.numar)}">
-      <p class="rez-titlu">${esc(c.rezumat || c.obiect)}</p>
-      <div class="rez-meta">
-        ${c.domeniu ? `<span class="badge b-dom">${esc(domLabel(c.domeniu))}</span>` : ""}
-        <span class="badge b-${esc(c.nivel)}">${esc(nivLabel(c.nivel))}</span>
-        <span>${esc(c.instanta)}</span><span>· dosar ${esc(c.numar)}</span>
-      </div></button>`;
-  }).join("") + `</div>`;
-}
-function listaGrupuri(rows) {
-  return `<div class="lista">` + rows.slice(0, 300).map(g => {
-    const i = DATA.grupuri.indexOf(g);
-    return `<button class="rezultat" onclick="detaliuGrup(${i})" aria-label="Detalii val ${esc(g.obiect_tip)}">
-      <div class="rez-top">
-        <div>
-          <p class="rez-titlu">${esc(g.obiect_tip)}</p>
-          <div class="rez-meta">împotriva <b>${esc(g.parat)}</b>
-            ${g.domeniu ? `<span class="badge b-dom">${esc(domLabel(g.domeniu))}</span>` : ""}</div>
-        </div>
-        <span class="count">${g.aprox ? "≥" : ""}${g.nr_dosare}<br><small class="muted">dosare</small></span>
-      </div></button>`;
-  }).join("") + `</div>`;
+function pictaValuri() {
+  const rows = D.grupuri.filter(g => !stare.valDom || (g.domeniu || "alt") === stare.valDom).sort((a, b) => b.nr_dosare - a.nr_dosare);
+  filtre($("#val-filtre"), D.grupuri, stare.valDom, (d) => { stare.valDom = d; stare.valToate = false; pictaValuri(); }, "valurile");
+  const arat = stare.valToate ? rows : rows.slice(0, 12);
+  const l = $("#val-lista");
+  l.innerHTML = arat.map(rowVal).join("") || `<li class="empty">Niciun val în acest domeniu.</li>`;
+  leaga(l);
+  const m = $("#val-more");
+  m.hidden = rows.length <= arat.length;
+  m.textContent = `Arată toate cele ${fmt(rows.length)} valuri`;
+  m.onclick = () => { stare.valToate = true; pictaValuri(); };
 }
 
-function filtruDomeniu(items, scop) {
-  const set = [...new Set(items.map(i => i.domeniu).filter(Boolean))].sort();
-  if (!set.length) return "";
-  return `<div class="filtru-domeniu">
-    <label for="sel-dom" class="muted">Filtrează ${scop || ""} pe domeniu:</label>
-    <select id="sel-dom" onchange="setDom(this.value)">
-      <option value="">Toate domeniile (${set.length})</option>
-      ${set.map(d => `<option value="${d}" ${d === fdom ? "selected" : ""}>${esc(domLabel(d))}</option>`).join("")}
-    </select></div>`;
+// ---------- acțiuni colective ----------
+function rowCaz(c) {
+  const motive = (c.motive || []).filter(Boolean);
+  return `<li class="case">
+    <p class="case-t">${esc(rezumat(c.rezumat || c.obiect))}</p>
+    <p class="case-m"><span class="lvl${c.nivel === "confirmat" ? "" : " rev"}">${c.nivel === "confirmat" ? "Confirmat" : "De verificat"}</span>
+      · ${esc(domeniu(c.domeniu))} · ${esc(instanta(c.instanta))} · dosar ${esc(c.numar)}${c.stadiu ? ` · ${esc(c.stadiu)}` : ""}</p>
+    <button class="case-more" type="button" aria-expanded="false" aria-controls="c${c._i}">De ce apare aici</button>
+    <div class="case-panel" id="c${c._i}" hidden>
+      ${c.obiect ? `<p>Ce se cere în dosar: ${esc(virgula(c.obiect))}.</p>` : ""}
+      ${motive.length ? `<ul>${motive.map(m => `<li>${esc(virgula(m))}</li>`).join("")}</ul>` : ""}
+      <a class="out" href="https://portal.just.ro">Verifică dosarul ${esc(c.numar)} pe portal.just.ro</a>
+    </div>
+  </li>`;
 }
-function setDom(v) { fdom = v; tab === "valuri" ? pictaGrupuri() : pictaCazuri(); }
-function quick(q) { const e = document.getElementById("q"); e.value = q; render(); e.focus(); }
-
-// ---- despre ----
-function renderDespre() {
-  main().innerHTML = `
-    <div class="card"><h2 style="margin-top:0">Nu ești singur</h2>
-      <p>Când cineva e păgubit — de o bancă, o instituție, un dezvoltator, un asigurător — de obicei crede că e
-        singur în fața unui adversar mare. De cele mai multe ori nu e: alte mii de oameni au exact aceeași
-        problemă, fiecare cu dosarul lui. <b>Păgubiți.ro îi strânge laolaltă</b> și le arată unde stă dreptatea,
-        în datele publice ale instanțelor.</p></div>
-    <div class="card"><h2 style="margin-top:0">Ce găsești aici</h2>
-      <p><b>Acțiuni colective</b> — procese pornite de asociații sau ONG-uri în numele unui grup
-        (consumatori, clauze abuzive bancare, mediu).</p>
-      <p><b>Valuri de procese identice</b> — mii de dosare individuale separate cu aceeași problemă împotriva
-        aceleiași instituții sau firme: recalculări de pensii, despăgubiri de la asigurători în faliment, taxe,
-        apartamente nelivrate (ca la Nordis). Le grupăm ca să vezi că nu ești singur.</p></div>
-    <div class="card"><h2 style="margin-top:0">Cum funcționează</h2>
-      <p class="muted">Un program scanează automat web service-ul public al instanțelor (portal.just.ro),
-        clasifică dosarele după semnale obiective (cine sunt părțile, ce cer, câți sunt) și descoperă singur
-        firmele/instituțiile acționate în masă. Totul e determinist și verificabil; fiecare clasificare vine
-        cu motivele ei.</p></div>
-    <div class="card" style="background:#fbf3df;border-color:#e9d6a3"><p style="margin:0;color:#6b521a">
-      <b>Important.</b> Informație orientativă, <b>nu</b> consultanță juridică. Clasificarea automată poate greși
-      („de verificat"). Consultă un avocat și verifică la
-      <a href="https://portal.just.ro" target="_blank" rel="noopener">portal.just.ro</a>.
-      Persoanele fizice sunt afișate anonimizat.</p></div>`;
+function pictaColective() {
+  const rows = D.cazuri.filter(c => !stare.colDom || (c.domeniu || "alt") === stare.colDom)
+    .sort((a, b) => (a.nivel === "confirmat" ? 0 : 1) - (b.nivel === "confirmat" ? 0 : 1) || b.scor - a.scor);
+  filtre($("#col-filtre"), D.cazuri, stare.colDom, (d) => { stare.colDom = d; stare.colToate = false; pictaColective(); }, "acțiunile");
+  const arat = stare.colToate ? rows : rows.slice(0, 5);
+  $("#col-lista").innerHTML = arat.map(rowCaz).join("") || `<li class="empty">Nicio acțiune în acest domeniu.</li>`;
+  leaga($("#col-lista"));
+  const m = $("#col-more");
+  m.hidden = rows.length <= arat.length;
+  m.textContent = `Arată toate cele ${fmt(rows.length)} acțiuni`;
+  m.onclick = () => { stare.colToate = true; pictaColective(); };
 }
 
-// ---- modal detaliu (focus + Escape) ----
-function inchide() {
-  const d = document.getElementById("detaliu");
-  if (!d.innerHTML) return;
-  d.innerHTML = "";
-  if (lastFocus) { lastFocus.focus(); lastFocus = null; }
-}
-function modal(html) {
-  lastFocus = document.activeElement;
-  const d = document.getElementById("detaliu");
-  d.innerHTML = `<div class="overlay" onclick="if(event.target===this)inchide()" role="dialog" aria-modal="true">
-    <div class="modal"><button class="x" onclick="inchide()" aria-label="Închide">×</button>${html}</div></div>`;
-  const x = d.querySelector(".x"); if (x) x.focus();
-}
+// ---------- căutarea ----------
+function cauta(q, scroll) {
+  const sec = $("#rezultate");
+  const nq = norm(q.trim());
+  if (!D) return;
+  if (!nq) { sec.hidden = true; history.replaceState(null, "", location.pathname); return; }
+  const termeni = nq.split(/\s+/);
+  const ok = (s) => termeni.every(t => s.includes(t));
+  const val = D.grupuri.filter(g => ok(g._cauta)).sort((a, b) => b.nr_dosare - a.nr_dosare);
+  const caz = D.cazuri.filter(c => ok(c._cauta)).sort((a, b) => b.scor - a.scor);
+  const total = val.reduce((s, g) => s + g.nr_dosare, 0);
 
-function detaliuCaz(i) {
-  const c = DATA.cazuri[i]; if (!c) return;
-  modal(`
-    <h2>Dosar ${esc(c.numar)}</h2>
-    <p class="muted">${esc(c.instanta)}${c.stadiu ? " · " + esc(c.stadiu) : ""}</p>
-    <div class="pills">
-      ${c.domeniu ? `<span class="badge b-dom">${esc(domLabel(c.domeniu))}</span>` : ""}
-      <span class="badge b-${esc(c.nivel)}">${esc(nivLabel(c.nivel))}</span></div>
-    ${c.rezumat ? `<p style="font-size:17px"><b>${esc(c.rezumat)}</b></p>` : ""}
-    <p><span class="muted">Obiect:</span><br>${esc(c.obiect || "—")}</p>
-    ${(c.motive && c.motive.length) ? `<p class="muted">De ce a fost marcat:</p><ul>${c.motive.map(m => `<li>${esc(m)}</li>`).join("")}</ul>` : ""}
-    ${(c.parti && c.parti.length) ? `<h3>Părți</h3><table><tbody>${c.parti.map(p => `<tr><td>${esc(p.nume)}</td><td class="muted">${esc(p.calitate)}</td></tr>`).join("")}</tbody></table><p class="muted">Persoanele fizice sunt afișate cu inițiale.</p>` : ""}
-    <div class="cta"><a href="https://portal.just.ro" target="_blank" rel="noopener">🔎 Verifică dosarul ${esc(c.numar)} pe portal.just.ro →</a></div>`);
+  let lead;
+  if (val.length) {
+    const top = val[0];
+    lead = `Nu ești singur. Am găsit <strong>${nr(total, "dosar", "dosare")}</strong> în ${nr(val.length, "val", "valuri")} de procese pentru „${esc(q.trim())}”. Cel mai mare: ${nr(top.nr_dosare, "dosar", "dosare")} de tip „${esc(top.obiect_tip)}” împotriva ${esc(titlu(top.parat))}.`;
+  } else if (caz.length) {
+    lead = `Am găsit <strong>${nr(caz.length, "acțiune colectivă", "acțiuni colective")}</strong> pentru „${esc(q.trim())}”.`;
+  } else {
+    lead = `Nu am găsit nimic pentru „${esc(q.trim())}”. Încearcă doar numele firmei (de exemplu „Nordis”), al instituției sau un cuvânt ca „pensie”, „asigurare”, „executare”.`;
+  }
+  $("#rez-lead").innerHTML = lead;
+  $("#rez-h").textContent = "Rezultate";
+  $("#rez-body").innerHTML =
+    (val.length ? `<h3>Valuri de procese</h3><ul class="rows" id="rez-val">${val.slice(0, 40).map(rowVal).join("")}</ul>` : "") +
+    (caz.length ? `<h3>Acțiuni colective</h3><ul class="cases" id="rez-caz">${caz.slice(0, 30).map(rowCaz).join("")}</ul>` : "");
+  const rv = $("#rez-val"); if (rv) leaga(rv);
+  const rc = $("#rez-caz"); if (rc) leaga(rc);
+  sec.hidden = false;
+  history.replaceState(null, "", `#q=${encodeURIComponent(q.trim())}`);
+  if (scroll) sec.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
-function detaliuGrup(i) {
-  const g = DATA.grupuri[i]; if (!g) return;
-  const inst = g.instante ? Object.entries(g.instante).sort((a, b) => b[1] - a[1]) : [];
-  modal(`
-    <h2>${esc(g.obiect_tip)}</h2>
-    <p class="muted">împotriva <b>${esc(g.parat)}</b>${g.domeniu ? ` · <span class="badge b-dom">${esc(domLabel(g.domeniu))}</span>` : ""}</p>
-    <p style="font-size:20px"><b>${g.aprox ? "≥ " : ""}${g.nr_dosare} dosare</b> cu aceeași problemă</p>
-    ${g.prima_data ? `<p class="muted">Perioadă: ${esc(g.prima_data)} → ${esc(g.ultima_data)}</p>` : ""}
-    <div class="cta">💡 Dacă ai și tu un astfel de litigiu împotriva <b>${esc(g.parat)}</b>, nu ești singur — sunt cel puțin ${g.nr_dosare} dosare similare.</div>
-    ${inst.length ? `<h3>Pe instanțe</h3><table><tbody>${inst.slice(0, 12).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join("")}</tbody></table>` : ""}
-    ${(g.exemple && g.exemple.length) ? `<h3>Exemple de dosare</h3><table><tbody>${g.exemple.map(e => `<tr><td>${esc(e.numar)}</td><td class="muted">${esc(e.instanta)}</td></tr>`).join("")}</tbody></table>` : ""}
-    <div class="cta"><a href="https://portal.just.ro" target="_blank" rel="noopener">🔎 Caută aceste dosare pe portal.just.ro →</a></div>`);
-}
+let tmr;
+$("#q").addEventListener("input", (e) => { clearTimeout(tmr); tmr = setTimeout(() => cauta(e.target.value, false), 180); });
+$("#cauta").addEventListener("submit", (e) => { e.preventDefault(); cauta($("#q").value, true); });
+document.querySelectorAll(".try").forEach(b => b.addEventListener("click", () => {
+  $("#q").value = b.dataset.q; cauta(b.dataset.q, true);
+}));
 
-window.render = render; window.clearQ = clearQ; window.quick = quick; window.setDom = setDom;
-window.mergiLaDomeniu = mergiLaDomeniu;
-window.detaliuCaz = detaliuCaz; window.detaliuGrup = detaliuGrup; window.inchide = inchide;
+// ---------- intrări la derulare ----------
+(function intrari() {
+  const hero = $(".sentence");
+  hero.classList.add("pre");
+  requestAnimationFrame(() => requestAnimationFrame(() => hero.classList.remove("pre")));
+  if (!("IntersectionObserver" in window)) return;
+  const grupuri = [
+    [".figures", ".figures-text, .figures-note"],
+    [".waves", ".section-h, .waves-photo, .waves-intro, .filters"],
+    [".collective", ".section-h, .collective-pin p, .pin-photo, .collective-list"],
+    [".steps", ".stair li"],
+    [".about", ".facts, .section-h, .about-lead"],
+    [".footer", ".footer-meta"],
+  ];
+  const io = new IntersectionObserver((ent) => ent.forEach(en => {
+    if (!en.isIntersecting) return;
+    en.target.querySelectorAll(".rise").forEach(el => el.classList.add("in"));
+    io.unobserve(en.target);
+  }), { rootMargin: "0px 0px -6% 0px" });
+  grupuri.forEach(([s, kids]) => {
+    const sec = $(s); if (!sec) return;
+    sec.querySelectorAll(kids).forEach((el, i) => { el.classList.add("rise"); el.style.setProperty("--d", `${i * 80}ms`); });
+    io.observe(sec);
+  });
+})();

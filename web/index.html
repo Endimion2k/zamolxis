@@ -3,99 +3,166 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Păgubiți.ro — Nu ești singur</title>
-  <meta name="description" content="Păgubiți.ro scoate la lumină acțiunile colective și valurile de litigii din România, ca orice persoană păgubită să-și găsească dreptatea — împreună cu ceilalți.">
+  <title>Păgubiți.ro · Procesele de masă din instanțele României</title>
+  <meta name="description" content="Caută firma sau instituția care te-a păgubit și vezi câți oameni au același dosar. Acțiuni colective și valuri de procese identice, din datele publice portal.just.ro.">
+  <meta name="theme-color" content="#f2f2f0">
+  <link rel="preload" href="fonts/imbue-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/albert-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="fonts.css">
   <link rel="stylesheet" href="style.css">
+  <script>document.documentElement.classList.add("js")</script>
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <div class="brand-col">
-        <div class="brand">
-          <svg width="44" height="44" viewBox="0 0 64 64" aria-hidden="true">
-            <circle cx="32" cy="26" r="13" fill="#e0a12e"/>
-            <g fill="#eef3f8">
-              <circle cx="20" cy="40" r="5.5"/><rect x="14.5" y="46" width="11" height="13" rx="5"/>
-              <circle cx="32" cy="37" r="6.5"/><rect x="25" y="44" width="14" height="16" rx="6"/>
-              <circle cx="44" cy="40" r="5.5"/><rect x="38.5" y="46" width="11" height="13" rx="5"/>
-            </g>
-          </svg>
-          <div>
-            <h1>Păgubiți<span class="ro">.ro</span></h1>
-            <p class="tag">Nu ești singur.</p>
-          </div>
-        </div>
-        <p class="sub">Scoatem la lumină procesele colective și valurile de litigii din România,
-          ca orice persoană păgubită să-și găsească dreptatea — împreună cu ceilalți.</p>
-      </div>
-      <div class="hero-art" aria-hidden="true">
-        <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#fdf3df"/><stop offset="1" stop-color="#f6d99a"/>
-            </linearGradient>
-            <radialGradient id="glow" cx="78%" cy="32%" r="55%">
-              <stop offset="0" stop-color="#ffe9b8" stop-opacity="0.95"/>
-              <stop offset="1" stop-color="#ffe9b8" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <rect x="0" y="0" width="360" height="210" rx="16" fill="url(#sky)"/>
-          <rect x="0" y="0" width="360" height="210" rx="16" fill="url(#glow)"/>
-          <circle cx="282" cy="66" r="34" fill="#f1a92a"/>
-          <g stroke="#f1a92a" stroke-width="3" stroke-linecap="round" opacity="0.55">
-            <line x1="282" y1="14" x2="282" y2="2"/><line x1="330" y1="34" x2="340" y2="27"/>
-            <line x1="234" y1="34" x2="224" y2="27"/><line x1="338" y1="66" x2="350" y2="66"/>
-          </g>
-          <path d="M0 176 H360" stroke="#d9b877" stroke-width="2" opacity="0.6"/>
-          <!-- oameni solidari, priviți spre lumină -->
-          <g fill="#173a5e">
-            <circle cx="48" cy="120" r="11"/><path d="M34 176 V140 a14 14 0 0 1 28 0 V176 Z"/>
-            <circle cx="92" cy="108" r="13"/><path d="M76 176 V130 a16 16 0 0 1 32 0 V176 Z"/>
-            <circle cx="140" cy="116" r="11"/><path d="M126 176 V136 a14 14 0 0 1 28 0 V176 Z"/>
-            <circle cx="184" cy="104" r="13"/><path d="M168 176 V126 a16 16 0 0 1 32 0 V176 Z"/>
-            <circle cx="230" cy="118" r="11"/><path d="M216 176 V138 a14 14 0 0 1 28 0 V176 Z"/>
-          </g>
-          <g fill="#1f4e7e">
-            <circle cx="116" cy="124" r="9"/><path d="M105 176 V142 a11 11 0 0 1 22 0 V176 Z"/>
-            <circle cx="208" cy="126" r="9"/><path d="M197 176 V144 a11 11 0 0 1 22 0 V176 Z"/>
-          </g>
-        </svg>
+  <a class="skip" href="#cauta">Sari la căutare</a>
+
+  <header class="hero" id="sus">
+    <nav class="nav" aria-label="Principal">
+      <a class="wordmark" href="#sus">Păgubiți.ro</a>
+      <ul>
+        <li><a href="#valuri">Valuri de procese</a></li>
+        <li><a href="#colective">Acțiuni colective</a></li>
+        <li><a href="#despre">Despre date</a></li>
+      </ul>
+      <a class="btn btn-small" href="#cauta">Caută</a>
+    </nav>
+
+    <div class="stage">
+      <h1 class="sentence">
+        <span class="half half-a">Nu ești</span>
+        <span class="reel" aria-hidden="true">
+          <span class="reel-item" data-oras="BUCURESTI"><img src="assets/bucuresti-1600.jpg" srcset="assets/bucuresti-800.jpg 800w, assets/bucuresti-1600.jpg 1600w" sizes="(max-width: 700px) 92vw, 36vw" width="1600" height="1200" alt=""></span>
+          <span class="reel-item" data-oras="VALCEA"><img src="assets/valcea-1600.jpg" srcset="assets/valcea-800.jpg 800w, assets/valcea-1600.jpg 1600w" sizes="(max-width: 700px) 92vw, 36vw" width="1600" height="1200" alt="" loading="lazy"></span>
+          <span class="reel-item" data-oras="CLUJ"><img src="assets/cluj-1600.jpg" srcset="assets/cluj-800.jpg 800w, assets/cluj-1600.jpg 1600w" sizes="(max-width: 700px) 92vw, 36vw" width="1600" height="1067" alt="" loading="lazy"></span>
+          <span class="reel-item" data-oras="IASI"><img src="assets/iasi-1600.jpg" srcset="assets/iasi-800.jpg 800w, assets/iasi-1600.jpg 1600w" sizes="(max-width: 700px) 92vw, 36vw" width="1600" height="1200" alt="" loading="lazy"></span>
+        </span>
+        <span class="half half-b">singur.</span>
+      </h1>
+      <p class="reel-cap">Palatul de Justiție, București.</p>
+
+      <div class="hero-foot">
+        <p class="lede">Procesele de masă din instanțele României. Caută firma care te-a păgubit și vezi câți au același dosar.</p>
+        <form class="search" id="cauta" role="search" action="#rezultate">
+          <label for="q" class="vh">Firmă, instituție sau problemă</label>
+          <input id="q" name="q" type="search" autocomplete="off" spellcheck="false"
+            placeholder="ex. Nordis, Casa de Pensii, City Insurance">
+          <button class="btn" type="submit">Caută</button>
+        </form>
+        <p class="hint">Încearcă:
+          <button type="button" class="try" data-q="Nordis">Nordis</button>,
+          <button type="button" class="try" data-q="Casa Judeteana de Pensii">Casa de Pensii</button>,
+          <button type="button" class="try" data-q="Asirom">Asirom</button>,
+          <button type="button" class="try" data-q="EOS KSI">EOS KSI</button>.
+          Informație orientativă, nu consultanță juridică.
+        </p>
       </div>
     </div>
   </header>
 
-  <div class="disclaimer"><div class="wrap">
-    ⚠️ Informație orientativă, <b>nu consultanță juridică</b>. Sursa oficială:
-    <a href="https://portal.just.ro" target="_blank" rel="noopener">portal.just.ro</a>. Persoanele fizice sunt anonimizate.
-  </div></div>
-
-  <div class="toolbar">
-    <div class="wrap">
-      <div class="searchbar">
-        <input id="q" type="text" autocomplete="off"
-          aria-label="Caută o firmă, o instituție sau problema ta"
-          placeholder="Caută o firmă, o instituție sau problema ta…">
-        <button id="q-btn" type="button">Caută</button>
+  <main>
+    <section class="results" id="rezultate" aria-labelledby="rez-h" hidden>
+      <div class="frame results-grid">
+        <div class="results-head">
+          <h2 id="rez-h" class="results-h">Rezultate</h2>
+          <p class="results-lead" id="rez-lead"></p>
+        </div>
+        <div id="rez-body"></div>
       </div>
-      <div class="tabs" role="tablist" aria-label="Secțiuni">
-        <button data-tab="colective" role="tab" aria-current="true">Procese colective</button>
-        <button data-tab="valuri" role="tab" aria-current="false">Valuri de procese</button>
-        <button data-tab="despre" role="tab" aria-current="false">Despre</button>
-      </div>
-    </div>
-  </div>
+    </section>
 
-  <main class="wrap" id="main" aria-live="polite">
-    <div class="gol">Se încarcă datele…</div>
+    <section class="figures" aria-labelledby="fig-h">
+      <div class="frame">
+        <h2 id="fig-h" class="vh">În cifre</h2>
+        <p class="figures-text" id="cifre">
+          Am găsit <b>242 de valuri</b> de procese identice, cu <b>21.269 de dosare</b> deschise separat de oameni cu aceeași problemă. Și <b>188 de acțiuni colective</b>, dintre care <b>15 confirmate</b>.
+        </p>
+        <p class="figures-note">Date din portal.just.ro, actualizate la <time id="generat">13 iunie 2026</time>.</p>
+        <figure class="figures-photo">
+          <img src="assets/iasi-800.jpg" width="800" height="600" alt="Palatul de Justiție din Iași" loading="lazy">
+          <figcaption>Palatul de Justiție, Iași.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="waves" id="valuri" aria-labelledby="val-h">
+      <div class="frame">
+        <h2 id="val-h" class="section-h">Cele mai mari valuri de&nbsp;procese</h2>
+        <div class="waves-grid">
+          <figure class="waves-photo">
+            <img src="assets/valcea-800.jpg" width="800" height="600" alt="Tribunalul Vâlcea" loading="lazy">
+            <figcaption id="val-photo-cap">Tribunalul Vâlcea. Aici se judecă valul de contestații împotriva Casei Județene de Pensii Vâlcea.</figcaption>
+          </figure>
+          <div class="waves-table">
+            <p class="waves-intro">Un val înseamnă sute de oameni care dau în judecată, fiecare separat, aceeași instituție pentru aceeași problemă. Apasă pe un rând ca să vezi instanțele, perioada și exemple de dosare.</p>
+            <div class="filters" id="val-filtre" role="group" aria-label="Filtrează valurile pe domeniu"></div>
+            <ul class="rows" id="val-lista"><li class="empty">Se încarcă valurile…</li></ul>
+            <button class="more" id="val-more" type="button" hidden>Arată toate valurile</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="collective" id="colective" aria-labelledby="col-h">
+      <div class="frame collective-grid">
+        <div class="collective-pin">
+          <h2 id="col-h" class="section-h">Acțiuni colective</h2>
+          <p>Procese pornite de o asociație sau un ONG în numele unui grup: consumatori, clauze abuzive bancare, mediu. „Confirmat” înseamnă că dosarul îndeplinește toate semnalele noastre. „De verificat” înseamnă că a îndeplinit doar o parte.</p>
+          <figure class="pin-photo">
+            <img src="assets/cluj-800.jpg" width="800" height="534" alt="Tribunalul Cluj" loading="lazy">
+            <figcaption>Tribunalul Cluj, Cluj-Napoca.</figcaption>
+          </figure>
+        </div>
+        <div class="collective-list">
+          <div class="filters" id="col-filtre" role="group" aria-label="Filtrează acțiunile colective pe domeniu"></div>
+          <ul class="cases" id="col-lista"><li class="empty">Se încarcă acțiunile colective…</li></ul>
+          <button class="more" id="col-more" type="button" hidden>Arată toate acțiunile</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="steps" aria-labelledby="pas-h">
+      <div class="frame">
+        <h2 id="pas-h" class="vh">Cum folosești site-ul</h2>
+        <ol class="stair">
+          <li><h3>Cauți firma.</h3><p>Numele băncii, al asigurătorului, al dezvoltatorului sau al Casei de Pensii care ți-a făcut nedreptatea.</p></li>
+          <li><h3>Vezi câți sunteți.</h3><p>Fiecare val arată câte dosare identice există, la ce instanțe și din ce perioadă.</p></li>
+          <li><h3>Verifici dosarul.</h3><p>Numerele de dosar te duc pe portal.just.ro, sursa oficială a instanțelor.</p></li>
+          <li><h3>Mergi mai departe.</h3><p>Cu un avocat, cu o asociație de consumatori sau cu ceilalți păgubiți din același val.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="about" id="despre" aria-labelledby="des-h">
+      <div class="frame about-grid">
+        <ul class="facts">
+          <li><b>Sursa</b> web service-ul public portal.just.ro</li>
+          <li><b>Actualizare</b> automată, în fiecare săptămână</li>
+          <li><b>Cod</b> deschis, pe <a href="https://github.com/Endimion2k/zamolxis">GitHub</a></li>
+        </ul>
+        <div class="about-text">
+          <h2 id="des-h" class="section-h">De unde vin datele</h2>
+          <p class="about-lead"><img class="dropcap" src="assets/bucuresti-800.jpg" width="800" height="600" alt="Palatul de Justiție din București" loading="lazy"><b>Un program citește săptămânal</b> registrul public al instanțelor, sortează dosarele după semnale obiective și găsește singur firmele acționate în masă. Fiecare clasificare are motivele ei.</p>
+          <p class="about-lead about-soft">Informația e orientativă, nu consultanță juridică, iar clasificarea automată poate greși. Verifică orice dosar la <a href="https://portal.just.ro">portal.just.ro</a>. Persoanele fizice apar doar cu inițiale.</p>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer>
-    <b>Păgubiți.ro</b> — „Nu ești singur." Date din web service-ul public portal.just.ro ·
-    Actualizat: <span id="generat">—</span> ·
-    <a href="https://github.com/Endimion2k/zamolxis" target="_blank" rel="noopener">cod open-source</a>
+  <footer class="footer">
+    <div class="frame">
+      <div class="footer-top">
+        <p><b>Păgubiți.ro</b>. Procesele de masă din România, din datele publice ale instanțelor.</p>
+        <a href="#sus">Înapoi sus</a>
+      </div>
+      <p class="footer-cta">Verifică orice dosar pe</p>
+      <a class="footer-big" href="https://portal.just.ro">portal.just.ro</a>
+      <div class="footer-meta">
+        <a href="https://github.com/Endimion2k/zamolxis">Cod open-source</a>
+        <p class="credits" id="credite">Fotografii prelucrate alb-negru, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>, prin Wikimedia Commons: <a href="https://commons.wikimedia.org/wiki/File:Palatul_de_justitie_B-II-m-A-18941.jpg">Palatul de justiție, CristianChirita</a>; <a href="https://commons.wikimedia.org/wiki/File:Tribunalul_V%C3%A2lcea.jpg">Tribunalul Vâlcea, Popescuraluca</a>; <a href="https://commons.wikimedia.org/w/index.php?curid=21314490">Tribunalul Cluj, Codruta Georgescu</a>; <a href="https://commons.wikimedia.org/wiki/File:Ia%C5%9Fi_,_Justice_Palace.jpg">Iaşi, Justice Palace, Argenna</a>.</p>
+        <p>România, 2026</p>
+      </div>
+    </div>
   </footer>
 
-  <div id="detaliu"></div>
   <script src="app.js"></script>
 </body>
 </html>
