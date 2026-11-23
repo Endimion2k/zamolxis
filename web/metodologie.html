@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cum alegem procesele · Păgubiți.ro</title>
+  <meta name="description" content="Criteriile după care Păgubiți.ro alege acțiunile colective și valurile de procese din datele portal.just.ro: scorul, pragurile și limitele metodei.">
+  <meta name="theme-color" content="#f2f2f0">
+  <link rel="preload" href="fonts/imbue-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/albert-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="doc-head">
+    <nav class="nav" aria-label="Principal">
+      <a class="wordmark" href="./">Păgubiți.ro</a>
+      <ul>
+        <li><a href="./#valuri">Valuri de procese</a></li>
+        <li><a href="./#colective">Acțiuni colective</a></li>
+        <li><a href="./#despre">Despre date</a></li>
+      </ul>
+      <a class="btn btn-small" href="./#cauta">Caută</a>
+    </nav>
+  </header>
+
+  <main class="doc">
+    <h1>Cum alegem procesele</h1>
+    <p class="doc-lede">Un program citește registrul public al instanțelor și aplică aceleași reguli fiecărui dosar. Aici sunt toate regulile, cu punctajele și pragurile lor.</p>
+
+    <div class="doc-body">
+      <h2>De unde vin dosarele</h2>
+      <p>Din web service-ul public <a href="https://portal.just.ro">portal.just.ro</a>, al Ministerului Justiției. Programul îl interoghează automat de două ori pe săptămână: după numele asociațiilor care pornesc procese colective, după numele instituțiilor și firmelor date des în judecată și după tipuri de probleme.</p>
+      <p>Serviciul întoarce cel mult 1.000 de dosare la o căutare. Când sunt mai multe, programul împarte perioada în bucăți mai mici, până la 40 de căutări pentru același nume. Dacă tot nu încap, cifra apare pe site cu semnul „≥”: numărul real e cel puțin cel afișat.</p>
+
+      <h2>Acțiunile colective: un scor de la 0 la 100</h2>
+      <p>Fiecare dosar primește puncte pentru semnalele de mai jos. Punctele se adună, iar totalul se oprește la 100.</p>
+      <ul>
+        <li><b>50 de puncte:</b> reclamantul e o asociație cunoscută pentru astfel de procese. Avem o listă de 37, printre care ANPC, InfoCons, Pro Consumatori, Declic, Greenpeace, Bankwatch, APADOR și marile confederații sindicale.</li>
+        <li><b>35 de puncte:</b> reclamantul pare o organizație colectivă din afara listei (asociație, federație, sindicat, fundație, ligă).</li>
+        <li><b>5 puncte:</b> o asociație apare în dosar, dar nu ca reclamant.</li>
+        <li><b>45 de puncte:</b> obiectul dosarului spune explicit că e o acțiune în reprezentare, în interes colectiv sau pentru încetarea unor clauze abuzive ori practici comerciale incorecte.</li>
+        <li><b>Mulți reclamanți:</b> 55 de puncte de la 20 în sus, 40 pentru 10–19, 25 pentru 5–9, 10 pentru 3–4.</li>
+        <li><b>15 puncte:</b> domeniul e unul urmărit de noi: bancar, protecția consumatorilor, mediu, muncă, sănătate.</li>
+        <li><b>5 puncte:</b> pârâtul e o firmă.</li>
+      </ul>
+      <p>Unele dosare sunt eliminate de la început, oricâte semnale ar avea, pentru că sunt prin natura lor individuale sau administrative: divorț, partaj, succesiune, ordin de protecție, contestație la executare, evacuare, uzucapiune, înființarea sau dizolvarea unei asociații și altele asemenea (31 de tipuri).</p>
+      <ul>
+        <li><b>70 de puncte sau mai mult:</b> apare pe site ca „Confirmat”.</li>
+        <li><b>Între 40 și 69:</b> apare ca „De verificat”. E un candidat, iar clasificarea poate greși.</li>
+        <li><b>Sub 40:</b> nu apare pe site.</li>
+      </ul>
+      <p>Exemplu: o asociație de mediu din listă, împreună cu alți patru reclamanți, atacă o decizie a unui minister și a unei companii de stat. Primește 50 (asociație din listă) + 25 (5 reclamanți) + 5 (pârât firmă) = 80 de puncte, deci „Confirmat”. Pe site, butonul „De ce apare aici” arată exact aceste motive pentru fiecare dosar.</p>
+
+      <h2 id="valuri">Valurile de procese</h2>
+      <p>Un val înseamnă multe procese separate, cu aceeași problemă, împotriva aceleiași instituții sau firme. Le găsim pe două căi.</p>
+      <ul>
+        <li><b>Pârâți urmăriți:</b> o listă de 83 de instituții și firme date des în judecată: case de pensii, ANAF și direcțiile de finanțe, casele de asigurări de sănătate, bănci, asigurători (inclusiv cei în faliment), firme de recuperare a datoriilor, companii aeriene, dezvoltatori imobiliari. Căutăm dosarele din 2020 încoace.</li>
+        <li><b>Descoperire automată:</b> căutăm după tipul problemei (vicii ascunse, produs neconform, pachete și servicii turistice, taxe de școlarizare, cesiuni de creanță) și vedem ce firme apar des ca pârât. Căutăm dosarele din 2022 încoace.</li>
+      </ul>
+      <p>Apoi grupăm dosarele după doi factori:</p>
+      <ul>
+        <li><b>Pârâtul.</b> Variantele aceluiași nume sunt unite, inclusiv „administratorul judiciar al firmei X”, care devine firma X.</li>
+        <li><b>Tipul problemei.</b> Formulările diferite ale obiectului sunt aduse la una din 19 categorii, de exemplu „Recalculare pensie” sau „Contestație decizie de pensionare”.</li>
+      </ul>
+      <p>Un grup devine val de la 30 de dosare distincte pentru pârâții urmăriți și de la 25 pentru cei descoperiți automat. Fiecare număr de dosar e numărat o singură dată.</p>
+
+      <h2>Ce nu face programul</h2>
+      <ul>
+        <li>Nu citește hotărârile și nu știe cine a câștigat. Un proces nu dovedește vina pârâtului; decide instanța.</li>
+        <li>Nu folosește inteligență artificială. Regulile sunt fixe: aceleași date dau mereu același rezultat, iar fiecare rezultat vine cu motivele lui.</li>
+        <li>Nu numără oameni. Numără dosare: un om poate avea mai multe dosare, iar un dosar poate avea mai mulți reclamanți.</li>
+      </ul>
+
+      <h2>Limitele metodei</h2>
+      <ul>
+        <li>Un nume scris altfel decât în lista noastră poate scăpa.</li>
+        <li>Un dosar „De verificat” poate să nu fie o acțiune colectivă.</li>
+        <li>Datele urmează registrul instanțelor cu câteva zile întârziere. Data ultimei actualizări e pe pagina principală.</li>
+        <li>La valurile de pensii și sănătate nu publicăm numere de dosare, ca să nu ducă la informații despre sănătatea cuiva.</li>
+      </ul>
+      <p>Codul e public pe <a href="https://github.com/Endimion2k/zamolxis">GitHub</a>, cu toate listele și pragurile de mai sus. Dacă vezi o clasificare greșită, <a href="https://github.com/Endimion2k/zamolxis/issues/new?template=2-corectura.yml">spune-ne</a>.</p>
+
+      <p class="note">Ultima actualizare a acestei pagini: 23 noiembrie 2026.</p>
+    </div>
+  </main>
+
+  <footer class="footer footer-short">
+    <div class="frame">
+      <div class="footer-top">
+        <p><b>Păgubiți.ro</b>. Procesele de masă din România, din datele publice ale instanțelor.</p>
+        <a href="./">Înapoi la căutare</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
