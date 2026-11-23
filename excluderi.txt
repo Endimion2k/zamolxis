@@ -1,0 +1,4 @@
+# Dosare scoase de pe Păgubiți.ro la cerere (GDPR sau corectură).
+# Un număr de dosar pe linie, exact ca pe portal.just.ro. Liniile cu # sunt comentarii.
+# La fiecare cerere: adaugă numărul aici, cu numărul cererii GitHub în comentariu, apoi comite.
+# Construcția (scripts/build_static.py) scoate dosarul din acțiunile colective și din exemple.

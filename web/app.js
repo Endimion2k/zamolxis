@@ -133,7 +133,7 @@ function rowVal(g) {
 function panouVal(g) {
   const inst = Object.entries(g.instante || {}).sort((a, b) => b[1] - a[1]).slice(0, 8);
   const per = g.prima_data ? `între ${data(g.prima_data)} și ${data(g.ultima_data)}` : "";
-  return `<p>${g.aprox ? "Cel puțin " : ""}${nr(g.nr_dosare, "dosar", "dosare")} de tip „${esc(g.obiect_tip)}” împotriva ${esc(titlu(g.parat))}${per ? `, înregistrate ${per}` : ""}. Dacă ai și tu un astfel de proces, nu ești singur.</p>
+  return `<p>${g.aprox ? "Cel puțin " : ""}${nr(g.nr_dosare, "dosar", "dosare")} de tip „${esc(g.obiect_tip)}” împotriva ${esc(titlu(g.parat))}${per ? `, înregistrate ${per}` : ""}. Dacă ai și tu un astfel de proces, nu ești singur. Numărul de dosare nu arată cine are dreptate; decide instanța.</p>
     <div class="panel-cols">
       ${inst.length ? `<div><h4>Pe instanțe</h4><ul>${inst.map(([k, v]) => `<li><span>${esc(instanta(k))}</span><span>${fmt(v)}</span></li>`).join("")}</ul></div>` : ""}
       ${(g.exemple || []).length ? `<div><h4>Exemple de dosare</h4><ul>${g.exemple.map(e => `<li><span>${esc(e.numar)}</span><span>${esc(instanta(e.instanta))}</span></li>`).join("")}</ul></div>` : ""}

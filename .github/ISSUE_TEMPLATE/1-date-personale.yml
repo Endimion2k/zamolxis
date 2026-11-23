@@ -1,0 +1,42 @@
+name: Cerere privind datele personale
+description: Cere ștergerea sau ascunderea unui dosar în care apari (GDPR). Nu scrie numele tău.
+title: "[Date personale] Dosar "
+labels: ["date-personale"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Atenție: această cerere e publică.** Oricine o poate citi. Nu scrie numele, CNP-ul, adresa sau alte date despre tine. Avem nevoie doar de numărul dosarului.
+
+        Nu verificăm identitatea: ștergem dosarul indicat oricum, în cel mult 30 de zile. Dacă vrei să-ți exerciți drepturile fără cont GitHub sau fără să lași urme publice, poți depune o plângere la Autoritatea Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal (dataprotection.ro).
+  - type: input
+    id: dosar
+    attributes:
+      label: Numărul dosarului
+      description: Așa cum apare pe Păgubiți.ro sau pe portal.just.ro.
+      placeholder: ex. 2844/109/2024
+    validations:
+      required: true
+  - type: dropdown
+    id: cerere
+    attributes:
+      label: Ce ceri
+      options:
+        - Ștergerea dosarului de pe site
+        - Corectarea unei informații greșite
+        - Opoziție la prelucrare
+        - Altceva (explic mai jos)
+    validations:
+      required: true
+  - type: textarea
+    id: detalii
+    attributes:
+      label: Detalii (opțional)
+      description: Fără date personale.
+  - type: checkboxes
+    id: confirmare
+    attributes:
+      label: Confirmare
+      options:
+        - label: Am înțeles că cererea e publică și nu am scris date personale în ea.
+          required: true

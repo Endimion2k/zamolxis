@@ -9,8 +9,13 @@ name: Scanare săptămânală (reîmprospătează datele)
 #    se adună de la o săptămână la alta (valurile se salvează per pârât).
 on:
   schedule:
-    - cron: "0 3 * * 1"   # luni, 03:00 UTC
+    - cron: "0 3 * * 1,4"   # luni și joi, 03:00 UTC; cache-ul nefolosit 7 zile se șterge
   workflow_dispatch:
+    inputs:
+      scanare:
+        description: "Scanează portal.just.ro (nu = doar reconstruiește data.json din baza din cache)"
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -38,16 +43,19 @@ jobs:
           restore-keys: portal-db-
 
       - name: Scanare registru (acțiuni colective)
+        if: github.event_name == 'schedule' || inputs.scanare
         continue-on-error: true
         timeout-minutes: 20
         run: python scripts/run_scanner.py --throttle 0.5
 
       - name: Scanare valuri (pârâți cunoscuți)
+        if: github.event_name == 'schedule' || inputs.scanare
         continue-on-error: true
         timeout-minutes: 200
         run: python scripts/run_cluster_scan.py --domenii pensii,fiscal,asigurari,recuperare,sanatate --since 2020-01-01 --prag 30 --throttle 0.4
 
       - name: Descoperire valuri noi
+        if: github.event_name == 'schedule' || inputs.scanare
         continue-on-error: true
         timeout-minutes: 100
         run: python scripts/discover_waves.py --domenii imobiliare,turism,retail,telecom,servicii,investitii --since 2022-01-01 --prag 25 --throttle 0.4
@@ -82,4 +90,21 @@ jobs:
           git config user.email "zamolxis@users.noreply.github.com"
           git add web/data.json
           if git diff --cached --quiet; then echo "Nicio schimbare."; else \
-            git commit -m "Reîmprospătare date $(date -I)"; git push; fi
+            git commit -m "Reîmprospătare date $(date -I)"; git pull --rebase; git push; fi
+
+      # GitHub dezactivează programarea după 60 de zile fără activitate în repo.
+      # Dacă nu s-a mai comis nimic de mult, lăsăm un semn de viață.
+      - name: Semn de viață (ține programarea activă)
+        if: always()
+        run: |
+          ULTIM=$(git log -1 --format=%ct)
+          if [ $(( ($(date +%s) - ULTIM) / 86400 )) -ge 40 ]; then
+            git config user.name "Zamolxis Bot"
+            git config user.email "zamolxis@users.noreply.github.com"
+            date -u +%FT%TZ > .github/ultima-scanare
+            git add .github/ultima-scanare
+            git commit -m "Semn de viață: scanare $(date -I)"
+            git pull --rebase; git push
+          else
+            echo "Ultimul commit are sub 40 de zile."
+          fi

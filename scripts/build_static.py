@@ -31,6 +31,22 @@ DOMENII = {
 }
 NIVELURI = {"confirmat": "Confirmat", "revizuire": "De verificat"}
 
+# La aceste domenii, numărul unui dosar individual poate dezvălui date sensibile
+# (pensie de invaliditate, tratament medical). Nu publicăm exemple de dosare.
+FARA_EXEMPLE = {"pensii", "sanatate"}
+
+
+def citeste_excluderi(cale: Path) -> set[str]:
+    """Numerele de dosar scoase la cerere (unul pe linie, # = comentariu)."""
+    if not cale.exists():
+        return set()
+    out = set()
+    for linie in cale.read_text(encoding="utf-8").splitlines():
+        linie = linie.split("#", 1)[0].strip()
+        if linie:
+            out.add(linie)
+    return out
+
 
 def main() -> int:
     try:
@@ -42,14 +58,16 @@ def main() -> int:
     ap.add_argument("--db", default="data/portal.db")
     ap.add_argument("--out", default="web/data.json")
     ap.add_argument("--data", default="", help="data afișată (YYYY-MM-DD); gol = necunoscut")
+    ap.add_argument("--excluderi", default=str(Path(__file__).resolve().parent.parent / "excluderi.txt"))
     args = ap.parse_args()
+    excluse = citeste_excluderi(Path(args.excluderi))
 
     conn = conecteaza(args.db)
 
     cazuri = []
     for c in list_cazuri(conn, limit=100000):
         d = get_caz(conn, c["numar"])
-        if not d:
+        if not d or d["numar"] in excluse:
             continue
         cazuri.append({
             "numar": d["numar"], "instanta": d["instanta"], "stadiu": d["stadiu"],
@@ -71,7 +89,9 @@ def main() -> int:
             "parat": det["parat"], "obiect_tip": det["obiect_tip"], "domeniu": det["domeniu"],
             "nr_dosare": det["nr_dosare"], "aprox": bool(det["aprox"]),
             "prima_data": det["prima_data"], "ultima_data": det["ultima_data"],
-            "instante": det.get("instante", {}), "exemple": det.get("exemple", []),
+            "instante": det.get("instante", {}),
+            "exemple": [] if det["domeniu"] in FARA_EXEMPLE else
+                       [e for e in det.get("exemple", []) if e.get("numar") not in excluse],
         })
 
     s = statistici(conn)
@@ -87,7 +107,7 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"Scris {out}: {len(cazuri)} cazuri, {len(grupuri)} valuri "
-          f"({out.stat().st_size // 1024} KB)")
+          f"({out.stat().st_size // 1024} KB); {len(excluse)} dosare excluse la cerere")
     conn.close()
     return 0
 

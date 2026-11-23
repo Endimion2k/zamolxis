@@ -1,0 +1,28 @@
+name: Corectură sau contestare a unei clasificări
+description: Pentru firme, instituții, asociații sau oricine vede o informație greșită pe site.
+title: "[Corectură] "
+labels: ["corectura"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Datele vin din portal.just.ro și sunt clasificate automat, deci pot exista greșeli: un dosar pus în valul greșit, un domeniu greșit, o acțiune colectivă care nu e de fapt colectivă. Spune-ne ce e greșit și verificăm. Cererea e publică.
+  - type: input
+    id: ce
+    attributes:
+      label: Ce e greșit
+      description: Numărul dosarului sau numele valului (pârât și tip de proces).
+    validations:
+      required: true
+  - type: textarea
+    id: corect
+    attributes:
+      label: Ce ar trebui să scrie
+      description: Ideal cu o sursă (de exemplu, pagina dosarului de pe portal.just.ro).
+    validations:
+      required: true
+  - type: input
+    id: cine
+    attributes:
+      label: În numele cui scrii (opțional)
+      description: De exemplu, numele firmei sau al instituției. Nu e nevoie de date personale.

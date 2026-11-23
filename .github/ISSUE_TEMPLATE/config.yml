@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Plângere la autoritatea de protecție a datelor (ANSPDCP)
+    url: https://www.dataprotection.ro/
+    about: Dacă nu vrei să folosești GitHub sau nu ești mulțumit de răspunsul nostru.
+  - name: Verifică un dosar la sursa oficială
+    url: https://portal.just.ro/
+    about: Datele de pe Păgubiți.ro vin de aici.
