@@ -49,7 +49,7 @@ const stare = { valDom: "", valToate: false, colDom: "", colToate: false };
 const domeniu = (c) => (D.domenii && D.domenii[c]) || "Altele";
 
 // ---------- pornire ----------
-fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
+fetch("data.json", { cache: "no-cache" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
   D = d;
   D.grupuri.forEach((g, i) => { g._i = i; g._cauta = norm(`${g.parat} ${g.obiect_tip} ${domeniu(g.domeniu)}`); });
   D.cazuri.forEach((c, i) => {
