@@ -2,6 +2,11 @@ name: Scanare săptămânală (reîmprospătează datele)
 
 # Rulează scanerele pe runner-ul GitHub (acces liber la portal.just.ro),
 # regenerează web/data.json și îl comite. Push-ul declanșează deploy-ul (pages.yml).
+#
+# Scanarea completă durează peste 2h. Ca să nu pierdem tot la timeout:
+#  - fiecare scaner are pasul și limita lui de timp; construcția rulează oricum;
+#  - baza (data/portal.db) se păstrează între rulări în cache, deci progresul
+#    se adună de la o săptămână la alta (valurile se salvează per pârât).
 on:
   schedule:
     - cron: "0 3 * * 1"   # luni, 03:00 UTC
@@ -10,10 +15,14 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: scan
+  cancel-in-progress: false
+
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,21 +30,54 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
 
-      - name: Scanare (best-effort, nu oprește deploy-ul la eroare parțială)
+      - name: Restaurează baza din rularea anterioară
+        uses: actions/cache/restore@v4
+        with:
+          path: data/portal.db
+          key: portal-db-${{ github.run_id }}
+          restore-keys: portal-db-
+
+      - name: Scanare registru (acțiuni colective)
         continue-on-error: true
-        run: |
-          python scripts/run_scanner.py --throttle 0.5
-          python scripts/run_cluster_scan.py --domenii pensii,fiscal,asigurari,recuperare,sanatate --since 2020-01-01 --prag 30 --throttle 0.4
-          python scripts/discover_waves.py --domenii imobiliare,turism,retail,telecom,servicii,investitii --since 2022-01-01 --prag 25 --throttle 0.4
+        timeout-minutes: 20
+        run: python scripts/run_scanner.py --throttle 0.5
+
+      - name: Scanare valuri (pârâți cunoscuți)
+        continue-on-error: true
+        timeout-minutes: 200
+        run: python scripts/run_cluster_scan.py --domenii pensii,fiscal,asigurari,recuperare,sanatate --since 2020-01-01 --prag 30 --throttle 0.4
+
+      - name: Descoperire valuri noi
+        continue-on-error: true
+        timeout-minutes: 100
+        run: python scripts/discover_waves.py --domenii imobiliare,turism,retail,telecom,servicii,investitii --since 2022-01-01 --prag 25 --throttle 0.4
+
+      - name: Salvează baza pentru rularea următoare
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/portal.db
+          key: portal-db-${{ github.run_id }}
 
       - name: Construiește data.json
-        run: python scripts/build_static.py --data "$(date -I)"
-
-      - name: Comite dacă datele sunt valide (nu suprascriem cu gol)
         run: |
-          CAZURI=$(python -c "import json;print(len(json.load(open('web/data.json',encoding='utf-8'))['cazuri']))")
-          echo "cazuri în export: $CAZURI"
-          if [ "$CAZURI" -lt 50 ]; then echo "Prea puține date — nu comit."; exit 0; fi
+          cp web/data.json /tmp/data_vechi.json
+          python scripts/build_static.py --data "$(date -I)"
+
+      - name: Comite dacă datele sunt valide (nu suprascriem cu mai puțin)
+        run: |
+          read CAZ GRU CAZ0 GRU0 < <(python - <<'PY'
+          import json
+          n = json.load(open('web/data.json', encoding='utf-8'))
+          v = json.load(open('/tmp/data_vechi.json', encoding='utf-8'))
+          print(len(n['cazuri']), len(n['grupuri']), len(v['cazuri']), len(v['grupuri']))
+          PY
+          )
+          echo "cazuri: $CAZ (înainte $CAZ0) · valuri: $GRU (înainte $GRU0)"
+          if [ "$CAZ" -lt 50 ] || [ $((GRU * 10)) -lt $((GRU0 * 9)) ]; then
+            echo "Export mai sărac decât cel publicat. Nu comit; baza rămâne în cache și se completează la rularea următoare."
+            exit 0
+          fi
           git config user.name "Zamolxis Bot"
           git config user.email "zamolxis@users.noreply.github.com"
           git add web/data.json
