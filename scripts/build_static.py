@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -34,6 +35,40 @@ NIVELURI = {"confirmat": "Confirmat", "revizuire": "De verificat"}
 # La aceste domenii, numărul unui dosar individual poate dezvălui date sensibile
 # (pensie de invaliditate, tratament medical). Nu publicăm exemple de dosare.
 FARA_EXEMPLE = {"pensii", "sanatate"}
+
+# Valuri care nu se publică, oricâte dosare ar avea:
+#  - penale (site-ul nu publică dosare penale; pârâtul e acolo de obicei partea vătămată);
+#  - de familie și succesiuni (sunt prin natura lor individuale);
+#  - incidente procedurale (nu sunt o problemă comună, ci pași dintr-un alt proces).
+VALURI_EXCLUSE = re.compile(
+    r"penal|infractiun|camera preliminar|judecatorul camera|confiscare speciala"
+    r"|masuri (preventive|asiguratorii)|art (208|250)\b"
+    r"|partaj|succesiune|uzucapiune|reintegrare familie|divort|custodie|ordin de protectie"
+    r"|^abtinere|^recuzare|completare dispozitiv|indreptare eroare|exceptie neconstitutionalitate"
+    r"|reexaminare|ajutor public judiciar",
+    re.I,
+)
+
+
+_FORME_JURIDICE = re.compile(r"\b(s ?c|s ?r ?l|s ?a|ltd|limited|dac|plc|gmbh|ag|ifn)\b")
+
+
+def cheie_parat(nume: str) -> str:
+    """Același pârât scris diferit (SC/SRL/S.R.L./SA/S.A.) dă aceeași cheie."""
+    return " ".join(_FORME_JURIDICE.sub(" ", normalizeaza(nume)).split())
+
+
+def curata_valuri(grupuri: list[dict]) -> list[dict]:
+    """Scoate valurile din VALURI_EXCLUSE și unește dublurile (același pârât după
+    normalizare + același tip), păstrând varianta cu mai multe dosare."""
+    alese: dict[tuple, dict] = {}
+    for g in grupuri:
+        if VALURI_EXCLUSE.search(g["obiect_tip"]):
+            continue
+        cheie = (cheie_parat(g["parat"]), g["obiect_tip"])
+        if cheie not in alese or g["nr_dosare"] > alese[cheie]["nr_dosare"]:
+            alese[cheie] = g
+    return sorted(alese.values(), key=lambda g: -g["nr_dosare"])
 
 
 def citeste_excluderi(cale: Path) -> set[str]:
@@ -102,9 +137,9 @@ def main() -> int:
         vechi = json.loads(Path(args.pastreaza).read_text(encoding="utf-8"))
         # Un val nu scade în timp: dacă scanarea de acum a prins mai puține dosare
         # (fereastră de timp trunchiată), păstrăm varianta mai bogată.
-        idx = {(normalizeaza(g["parat"]), g["obiect_tip"]): i for i, g in enumerate(grupuri)}
+        idx = {(cheie_parat(g["parat"]), g["obiect_tip"]): i for i, g in enumerate(grupuri)}
         for g in vechi.get("grupuri", []):
-            cheie = (normalizeaza(g["parat"]), g["obiect_tip"])
+            cheie = (cheie_parat(g["parat"]), g["obiect_tip"])
             if cheie in idx and grupuri[idx[cheie]]["nr_dosare"] >= g["nr_dosare"]:
                 continue
             g = dict(g)
@@ -122,6 +157,10 @@ def main() -> int:
                 continue
             cazuri.append(c)
             pastrate_c += 1
+
+    inainte = len(grupuri)
+    grupuri = curata_valuri(grupuri)
+    print(f"Valuri scoase (penale, familie, procedurale, dubluri): {inainte - len(grupuri)}")
 
     s = statistici(conn)
     confirmate = sum(1 for c in cazuri if c.get("nivel") == "confirmat")
