@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.classifier.taxonomy import nume_public  # noqa: E402
+from app.classifier.taxonomy import normalizeaza, nume_public  # noqa: E402
 from app.storage import conecteaza, get_caz, get_grup, list_cazuri, list_grupuri, statistici  # noqa: E402
 
 DOMENII = {
@@ -59,6 +59,9 @@ def main() -> int:
     ap.add_argument("--out", default="web/data.json")
     ap.add_argument("--data", default="", help="data afișată (YYYY-MM-DD); gol = necunoscut")
     ap.add_argument("--excluderi", default=str(Path(__file__).resolve().parent.parent / "excluderi.txt"))
+    ap.add_argument("--pastreaza", default="",
+                    help="data.json publicat anterior: valurile și dosarele care lipsesc din baza "
+                         "curentă (scanare parțială) se păstrează, ca să nu dispară de pe site")
     args = ap.parse_args()
     excluse = citeste_excluderi(Path(args.excluderi))
 
@@ -94,12 +97,39 @@ def main() -> int:
                        [e for e in det.get("exemple", []) if e.get("numar") not in excluse],
         })
 
+    pastrate_g = pastrate_c = 0
+    if args.pastreaza and Path(args.pastreaza).exists():
+        vechi = json.loads(Path(args.pastreaza).read_text(encoding="utf-8"))
+        # Un val nu scade în timp: dacă scanarea de acum a prins mai puține dosare
+        # (fereastră de timp trunchiată), păstrăm varianta mai bogată.
+        idx = {(normalizeaza(g["parat"]), g["obiect_tip"]): i for i, g in enumerate(grupuri)}
+        for g in vechi.get("grupuri", []):
+            cheie = (normalizeaza(g["parat"]), g["obiect_tip"])
+            if cheie in idx and grupuri[idx[cheie]]["nr_dosare"] >= g["nr_dosare"]:
+                continue
+            g = dict(g)
+            g["exemple"] = [] if g.get("domeniu") in FARA_EXEMPLE else [
+                e for e in g.get("exemple", []) if e.get("numar") not in excluse]
+            if cheie in idx:
+                grupuri[idx[cheie]] = g
+            else:
+                idx[cheie] = len(grupuri)
+                grupuri.append(g)
+            pastrate_g += 1
+        numere = {c["numar"] for c in cazuri}
+        for c in vechi.get("cazuri", []):
+            if c["numar"] in numere or c["numar"] in excluse:
+                continue
+            cazuri.append(c)
+            pastrate_c += 1
+
     s = statistici(conn)
+    confirmate = sum(1 for c in cazuri if c.get("nivel") == "confirmat")
     payload = {
         "generat_la": args.data,
         "domenii": DOMENII,
         "niveluri": NIVELURI,
-        "stats": {"confirmate": s["pe_nivel"].get("confirmat", 0)},
+        "stats": {"confirmate": confirmate or s["pe_nivel"].get("confirmat", 0)},
         "cazuri": cazuri,
         "grupuri": grupuri,
     }
@@ -107,7 +137,8 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"Scris {out}: {len(cazuri)} cazuri, {len(grupuri)} valuri "
-          f"({out.stat().st_size // 1024} KB); {len(excluse)} dosare excluse la cerere")
+          f"({out.stat().st_size // 1024} KB); {len(excluse)} dosare excluse la cerere; "
+          f"păstrate din exportul anterior: {pastrate_g} valuri, {pastrate_c} dosare")
     conn.close()
     return 0
 

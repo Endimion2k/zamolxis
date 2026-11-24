@@ -64,9 +64,11 @@ def _colecteaza_adaptiv(client, filtru: dict, start, stop, buget):
         return [], False
     if len(dosare) >= PLAFON_API and (stop - start) > MIN_FEREASTRA:
         mid = start + (stop - start) / 2
-        a, ta = _colecteaza_adaptiv(client, filtru, start, mid, buget)
+        # Întâi jumătatea RECENTĂ: când bugetul de interogări se termină, pierdem
+        # dosarele vechi, nu pe cele care interesează acum.
         b, tb = _colecteaza_adaptiv(client, filtru, mid, stop, buget)
-        return a + b, (ta or tb)
+        a, ta = _colecteaza_adaptiv(client, filtru, start, mid, buget)
+        return b + a, (ta or tb)
     return dosare, len(dosare) >= PLAFON_API
 
 
@@ -125,6 +127,7 @@ def descopera_valuri(
     data_start: datetime | None = None,
     data_stop: datetime | None = None,
     on_progress=None,
+    max_subinterogari: int = MAX_SUBINTEROGARI,
 ) -> GroupReport:
     """DESCOPERIRE AUTOMATĂ: caută pe TIP DE OBIECT (problemă) și descoperă ce
     persoane juridice sunt acționate în masă — fără listă prealabilă de pârâți.
@@ -145,7 +148,7 @@ def descopera_valuri(
     for ob in obiecte:
         progres(f"obiect: {ob['query']}")
         raport.parati_scanati += 1
-        buget = {"ramas": MAX_SUBINTEROGARI}
+        buget = {"ramas": max_subinterogari}
         dosare, trunchiat = _colecteaza_adaptiv(client, {"obiect": ob["query"]}, start, stop, buget)
         if trunchiat:
             raport.trunchieri.append(ob["query"])
@@ -216,6 +219,8 @@ def scaneaza_grupuri(
     bucketuri: list | None = None,
     domenii: tuple | list | None = None,
     on_progress=None,
+    max_subinterogari: int = MAX_SUBINTEROGARI,
+    rotire: int = 0,
 ) -> GroupReport:
     init_db(conn)
     client = client or PortalClient()
@@ -223,6 +228,11 @@ def scaneaza_grupuri(
         parati = registry.PARATI_MASA
         if domenii is not None:
             parati = [p for p in parati if p["domeniu"] in domenii]
+    if rotire and parati:
+        # pornim lista din alt loc la fiecare rulare, ca un timeout să nu lase
+        # mereu aceiași pârâți nescanați
+        k = rotire % len(parati)
+        parati = parati[k:] + parati[:k]
     start = data_start or DEFAULT_START
     stop = data_stop or datetime.now()
     raport = GroupReport()
@@ -236,7 +246,7 @@ def scaneaza_grupuri(
         raport.parati_scanati += 1
         query_n = tx.normalizeaza(pm["query"])
         variante_n = [tx.normalizeaza(v) for v in pm.get("variante", [])]
-        buget = {"ramas": MAX_SUBINTEROGARI}
+        buget = {"ramas": max_subinterogari}
         dosare, trunchiat = _colecteaza_adaptiv(client, {"parte": pm["query"]}, start, stop, buget)
         if trunchiat:
             raport.trunchieri.append(pm["query"])

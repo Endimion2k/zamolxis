@@ -38,6 +38,7 @@ def main() -> int:
     ap.add_argument("--obiect", action="append",
                     help="tip de obiect de descoperit (se poate repeta). Implicit: din registru.")
     ap.add_argument("--domenii", help="filtrează tipurile de obiect pe domenii (virgulă)")
+    ap.add_argument("--buget", type=int, default=None, help="nr. maxim de interogări per tip de obiect")
     args = ap.parse_args()
 
     data_start = None
@@ -56,9 +57,10 @@ def main() -> int:
     conn = conecteaza(args.db)
     client = PortalClient(throttle=args.throttle)
     print(f">> Descopăr valuri pe {len(obiecte)} tipuri de obiect...", flush=True)
+    extra = {"max_subinterogari": args.buget} if args.buget else {}
     raport = descopera_valuri(
         conn, client, obiecte=obiecte, prag=args.prag, data_start=data_start,
-        on_progress=lambda m: print(f"   · {m}", flush=True),
+        on_progress=lambda m: print(f"   · {m}", flush=True), **extra,
     )
     print("\n=== Raport descoperire ===")
     print(raport.rezumat())

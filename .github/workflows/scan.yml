@@ -49,17 +49,20 @@ jobs:
         timeout-minutes: 20
         run: python scripts/run_scanner.py --throttle 0.5
 
+      # Toți cei 83 de pârâți urmăriți (fără filtru de domeniu). Dosarele recente
+      # vin primele; lista pornește din alt loc în fiecare zi, ca un timeout să nu
+      # lase mereu aceiași pârâți nescanați.
       - name: Scanare valuri (pârâți cunoscuți)
         if: github.event_name == 'schedule' || inputs.scanare
         continue-on-error: true
-        timeout-minutes: 200
-        run: python scripts/run_cluster_scan.py --domenii pensii,fiscal,asigurari,recuperare,sanatate --since 2020-01-01 --prag 30 --throttle 0.4
+        timeout-minutes: 220
+        run: python scripts/run_cluster_scan.py --since 2020-01-01 --prag 30 --throttle 0.4 --buget 80 --rotire $(date +%j)
 
       - name: Descoperire valuri noi
         if: github.event_name == 'schedule' || inputs.scanare
         continue-on-error: true
-        timeout-minutes: 100
-        run: python scripts/discover_waves.py --domenii imobiliare,turism,retail,telecom,servicii,investitii --since 2022-01-01 --prag 25 --throttle 0.4
+        timeout-minutes: 80
+        run: python scripts/discover_waves.py --domenii imobiliare,turism,retail,telecom,servicii,investitii --since 2022-01-01 --prag 25 --throttle 0.4 --buget 60
 
       - name: Salvează baza pentru rularea următoare
         if: always()
@@ -71,7 +74,8 @@ jobs:
       - name: Construiește data.json
         run: |
           cp web/data.json /tmp/data_vechi.json
-          python scripts/build_static.py --data "$(date -I)"
+          # --pastreaza: valurile pe care scanarea de acum nu le-a prins rămân pe site
+          python scripts/build_static.py --data "$(date -I)" --pastreaza /tmp/data_vechi.json
 
       - name: Comite dacă datele sunt valide (nu suprascriem cu mai puțin)
         run: |

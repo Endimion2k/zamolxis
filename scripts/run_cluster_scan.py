@@ -38,6 +38,10 @@ def main() -> int:
     ap.add_argument("--since", help="dată de start YYYY-MM-DD")
     ap.add_argument("--domenii", help="domenii de scanat, separate prin virgulă "
                     "(ex: pensii,fiscal). Implicit: toate.")
+    ap.add_argument("--buget", type=int, default=None,
+                    help="nr. maxim de interogări per pârât (implicit din orchestrator)")
+    ap.add_argument("--rotire", type=int, default=0,
+                    help="de unde pornește lista de pârâți (ex. ziua din an); 0 = de la început")
     args = ap.parse_args()
 
     domenii = None
@@ -54,9 +58,10 @@ def main() -> int:
     conn = conecteaza(args.db)
     client = PortalClient(throttle=args.throttle)
     print(">> Detectez valuri de litigii...", flush=True)
+    extra = {"max_subinterogari": args.buget} if args.buget else {}
     raport = scaneaza_grupuri(
         conn, client, prag=args.prag, data_start=data_start, domenii=domenii,
-        on_progress=lambda m: print(f"   · {m}", flush=True),
+        on_progress=lambda m: print(f"   · {m}", flush=True), rotire=args.rotire, **extra,
     )
     print("\n=== Raport valuri ===")
     print(raport.rezumat())

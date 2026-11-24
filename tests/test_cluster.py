@@ -156,3 +156,25 @@ def test_detaliu_grup_cu_exemple(conn):
     assert detaliu["parat"] == PARAT
     assert len(detaliu["exemple"]) == 5
     assert detaliu["instante"].get("TribunalulCONSTANTA") == 5
+
+
+def test_colectarea_adaptiva_incepe_cu_perioada_recenta():
+    """La buget epuizat, se păstrează dosarele recente, nu cele vechi."""
+    from datetime import datetime
+
+    from app.cluster.analyzer import _colecteaza_adaptiv
+    from app.scanner.orchestrator import PLAFON_API
+
+    ferestre = []
+
+    class ClientPlin:
+        def cautare_dosare(self, data_start, data_stop, **_):
+            ferestre.append((data_start, data_stop))
+            return [object()] * PLAFON_API  # mereu la plafon: forțează împărțirea
+
+    start, stop = datetime(2020, 1, 1), datetime(2026, 1, 1)
+    _, trunchiat = _colecteaza_adaptiv(ClientPlin(), {"parte": "x"}, start, stop, {"ramas": 4})
+    assert trunchiat
+    # după prima interogare (tot intervalul), toate celelalte sunt în a doua jumătate
+    mijloc = start + (stop - start) / 2
+    assert all(a >= mijloc for a, _ in ferestre[1:])
