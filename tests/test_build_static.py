@@ -27,3 +27,15 @@ def test_unește_dublurile_și_păstrează_cifra_mare():
     ]
     rez = curata_valuri(valuri)
     assert len(rez) == 1 and rez[0]["nr_dosare"] == 151
+
+
+def test_executarea_unei_banci_nu_e_fiscala():
+    rez = curata_valuri([
+        {"parat": "BANCA TRANSILVANIA SA", "obiect_tip": "Contestație la executare fiscală",
+         "domeniu": "fiscal", "nr_dosare": 1686},
+        {"parat": "AGENŢIA NAŢIONALĂ DE ADMINISTRARE FISCALĂ",
+         "obiect_tip": "Contestație la executare fiscală", "domeniu": "fiscal", "nr_dosare": 190},
+    ])
+    tipuri = {g["parat"]: (g["obiect_tip"], g["domeniu"]) for g in rez}
+    assert tipuri["BANCA TRANSILVANIA SA"] == ("Contestație la executare", "recuperare")
+    assert tipuri["AGENŢIA NAŢIONALĂ DE ADMINISTRARE FISCALĂ"][0] == "Contestație la executare fiscală"

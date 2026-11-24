@@ -178,3 +178,9 @@ def test_colectarea_adaptiva_incepe_cu_perioada_recenta():
     # după prima interogare (tot intervalul), toate celelalte sunt în a doua jumătate
     mijloc = start + (stop - start) / 2
     assert all(a >= mijloc for a, _ in ferestre[1:])
+
+
+def test_contestatia_la_executare_obisnuita_nu_e_fiscala():
+    from app.cluster.bucket import bucket_obiect
+    assert bucket_obiect("contestaţie la executare fara citare") == "Contestație la executare"
+    assert bucket_obiect("contestatie la executare fiscala") == "Contestație la executare fiscală"

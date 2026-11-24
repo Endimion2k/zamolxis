@@ -386,6 +386,10 @@ BUCKETE_OBIECT: list[Bucket] = [
      "chei": ["contestatie act administrativ fiscal", "anulare decizie de impunere",
               "contestatie decizie de impunere", "anulare act administrativ fiscal"]},
     {"label": "Contestație la executare fiscală", "domeniu": "fiscal",
+     "chei": ["executare fiscal", "executare silita fiscal", "procedura fiscala",
+              "titlu executoriu fiscal", "poprire anaf", "somatie fiscal"]},
+    # executarea obișnuită (bănci, IFN, firme de recuperare): domeniul vine de la pârât
+    {"label": "Contestație la executare", "domeniu": "",
      "chei": ["anulare poprire", "suspendare executare silita", "contestatie la executare"]},
     # muncă
     {"label": "Sporuri / spor condiții de muncă", "domeniu": "munca",

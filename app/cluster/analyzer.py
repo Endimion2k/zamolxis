@@ -111,7 +111,7 @@ def _entitati_parat(dosar) -> list[str]:
     out = []
     for p in dosar.parti:
         calitate = tx.normalizeaza(p.calitate)
-        if not any(l in calitate for l in _LATURA_PARAT):
+        if not any(l in calitate for l in _LATURA_PARAT) or "tert poprit" in calitate:
             continue
         if p.nume and tx.este_entitate_nepersonala(p.nume):
             out.append(p.nume)
@@ -200,7 +200,7 @@ def _gaseste_parat(dosar, query_n: str, variante_n: list[str]) -> str | None:
     """Numele specific al părții-pârât care corespunde interogării (sau None)."""
     for p in dosar.parti:
         calitate = tx.normalizeaza(p.calitate)
-        if not any(l in calitate for l in _LATURA_PARAT):
+        if not any(l in calitate for l in _LATURA_PARAT) or "tert poprit" in calitate:
             continue
         nume_n = tx.normalizeaza(p.nume)
         if query_n in nume_n or any(v in nume_n for v in variante_n):

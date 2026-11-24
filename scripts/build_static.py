@@ -58,11 +58,35 @@ def cheie_parat(nume: str) -> str:
     return " ".join(_FORME_JURIDICE.sub(" ", normalizeaza(nume)).split())
 
 
+# Până la 24 nov. 2026 orice contestație la executare intra la „executare fiscală”.
+# Valurile deja publicate se corectează aici: rămân fiscale doar cele contra autorităților fiscale.
+_EXEC_FISCALA = "Contestație la executare fiscală"
+_AUTORITATE_FISCALA = re.compile(
+    r"administrare fiscal|finantelor publice|anaf|dgrfp|ajfp|impozite|taxe locale"
+    r"|ministerul finantelor|administrarea activelor statului|primari|municipiul|consiliul local|unitatea administrativ|\buat\b|vama|vamal")
+
+
+def reeticheteaza(g: dict) -> dict:
+    if g["obiect_tip"] != _EXEC_FISCALA or _AUTORITATE_FISCALA.search(normalizeaza(g["parat"])):
+        return g
+    g = dict(g)
+    g["obiect_tip"] = "Contestație la executare"
+    if g.get("domeniu") in ("fiscal", "", None):
+        n = normalizeaza(g["parat"])
+        g["domeniu"] = ("pensii" if "pensii" in n else "asigurari" if "asigur" in n
+                        else "telecom" if any(t in n for t in ("vodafone", "orange", "telekom", "digi"))
+                        else "recuperare")
+    if g["domeniu"] in FARA_EXEMPLE:
+        g["exemple"] = []
+    return g
+
+
 def curata_valuri(grupuri: list[dict]) -> list[dict]:
     """Scoate valurile din VALURI_EXCLUSE și unește dublurile (același pârât după
     normalizare + același tip), păstrând varianta cu mai multe dosare."""
     alese: dict[tuple, dict] = {}
     for g in grupuri:
+        g = reeticheteaza(g)
         if VALURI_EXCLUSE.search(g["obiect_tip"]):
             continue
         cheie = (cheie_parat(g["parat"]), g["obiect_tip"])
