@@ -93,7 +93,7 @@ jobs:
           fi
           git config user.name "Zamolxis Bot"
           git config user.email "zamolxis@users.noreply.github.com"
-          git add web/data.json
+          git add web/data.json web/index.html
           if git diff --cached --quiet; then echo "Nicio schimbare."; else \
             git commit -m "Reîmprospătare date $(date -I)"; git pull --rebase; git push
             # Un push făcut cu GITHUB_TOKEN nu declanșează alte workflow-uri,

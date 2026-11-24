@@ -83,6 +83,44 @@ def citeste_excluderi(cale: Path) -> set[str]:
     return out
 
 
+LUNI = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie",
+        "august", "septembrie", "octombrie", "noiembrie", "decembrie"]
+
+
+def _nr(n: int, sg: str, pl: str) -> str:
+    """Pluralul românesc: 1 val, 5 valuri, 20 de valuri, 1.340 de dosare."""
+    txt = f"{n:,}".replace(",", ".")
+    if n == 1:
+        return f"{txt} {sg}"
+    if n % 100 == 0 or n % 100 >= 20:
+        return f"{txt} de {pl}"
+    return f"{txt} {pl}"
+
+
+def actualizeaza_html(index: Path, payload: dict) -> None:
+    """Pune cifrele la zi și în HTML-ul static (îl văd crawlerele, fără JavaScript)."""
+    if not index.exists():
+        return
+    g, c = payload["grupuri"], payload["cazuri"]
+    conf = payload["stats"]["confirmate"]
+    fraza = (
+        f"Am găsit <b>{_nr(len(g), 'val', 'valuri')}</b> de procese identice, cu "
+        f"<b>{_nr(sum(x['nr_dosare'] for x in g), 'dosar', 'dosare')}</b> deschise separat "
+        f"de oameni cu aceeași problemă. Și <b>{_nr(len(c), 'acțiune colectivă', 'acțiuni colective')}</b>, "
+        f"dintre care <b>{_nr(conf, 'confirmată', 'confirmate')}</b>."
+    )
+    html = index.read_text(encoding="utf-8")
+    html = re.sub(r'(<p class="figures-text" id="cifre">\s*).*?(\s*</p>)',
+                  lambda m: m.group(1) + fraza + m.group(2), html, count=1, flags=re.S)
+    data = payload.get("generat_la") or ""
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", data):
+        an, luna, zi = data.split("-")
+        txt = f"{int(zi)} {LUNI[int(luna) - 1]} {an}"
+        html = re.sub(r'<time id="generat"[^>]*>.*?</time>',
+                      f'<time id="generat" datetime="{data}">{txt}</time>', html, count=1)
+    index.write_text(html, encoding="utf-8")
+
+
 def main() -> int:
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -175,6 +213,7 @@ def main() -> int:
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    actualizeaza_html(out.parent / "index.html", payload)
     print(f"Scris {out}: {len(cazuri)} cazuri, {len(grupuri)} valuri "
           f"({out.stat().st_size // 1024} KB); {len(excluse)} dosare excluse la cerere; "
           f"păstrate din exportul anterior: {pastrate_g} valuri, {pastrate_c} dosare")
